@@ -1,9 +1,11 @@
-#include <iostream>
+#include "SDL/include/SDL.h"
 
-int main() {
+#pragma comment (lib, "SDL/libx86/SDL2.lib")
+#pragma comment (lib, "SDL/libx86/SDL2main.lib")
 
-	printf_s("Hello World\n");
+int main(int argc, char* argv[]) {
 
-	system("pause");
+	
 
+	return 0;
 }
