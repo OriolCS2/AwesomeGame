@@ -8,6 +8,7 @@ int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	bool loop = true;
+	bool bullet_on = false;
 
 	SDL_Window* window = SDL_CreateWindow("Awesome Game", SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
@@ -21,6 +22,18 @@ int main(int argc, char* argv[]) {
 	square.w = 100;
 	square.h = 100;
 
+	struct Bullet {
+
+		int speed = 2;
+		SDL_Rect bullet;
+
+	};
+	
+	Bullet bullet;
+
+	bullet.bullet.w = 50;
+	bullet.bullet.h = 35;
+
 	while (loop) {
 
 		if (SDL_PollEvent(&event) != 0) {
@@ -31,36 +44,60 @@ int main(int argc, char* argv[]) {
 			if (event.type == SDL_KEYDOWN) {
 				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
 					loop = false;
-				if (event.key.keysym.scancode == SDL_SCANCODE_W) {
+				if (event.key.keysym.scancode == SDL_SCANCODE_UP){
 					if (square.y > 0) {
 						square.y -= 10;
 					}
 				}
-				if (event.key.keysym.scancode == SDL_SCANCODE_A) {
+				if (event.key.keysym.scancode == SDL_SCANCODE_LEFT) {
 					if (square.x > 0) {
 						square.x -= 10;
 					}
 				}
-				if (event.key.keysym.scancode == SDL_SCANCODE_S) {
+				if (event.key.keysym.scancode == SDL_SCANCODE_DOWN) {
 					if (square.y < 600 - square.h) {
 						square.y += 10;
 					}
 				}
-				if (event.key.keysym.scancode == SDL_SCANCODE_D) {
+				if (event.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
 					if (square.x < 800 - square.w) {
 						square.x += 10;
 					}
 				}
+				if (event.key.keysym.scancode == SDL_SCANCODE_SPACE) {
+					bullet_on = true;
+					bullet.bullet.x = square.x + square.w - 10;
+					bullet.bullet.y = square.y + (square.h / 2) - 15;
+
+				}
 			}
 		}
 
+		if (bullet_on) {
+			if (bullet.bullet.x >= 800) {
+				bullet_on = false;
+			}
+			SDL_SetRenderDrawColor(renderer, 127, 255, 0, 255);
+			SDL_RenderFillRect(renderer, &bullet.bullet);
+
+			bullet.bullet.x += 1;
+
+		}
+
+		
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		SDL_RenderFillRect(renderer, &square);
 
-		SDL_RenderPresent(renderer);
+
+		
 		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+		SDL_RenderPresent(renderer);
+	
+
 		SDL_RenderClear(renderer);
 	}
+
+
 	SDL_Quit();
 	return 0;
 }
