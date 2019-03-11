@@ -381,8 +381,8 @@ void Enemy::CreateEnemyBullet()
 			float m = sqrt((x*x) + (y*y));
 			x = x / m;
 			y = y / m;
-			active_enemy_bullets[i]->speed = x * 2.6f;
-			active_enemy_bullets[i]->speed_y = y * 2.6f;
+			active_enemy_bullets[i]->speed = x * 2.3f;
+			active_enemy_bullets[i]->speed_y = y * 2.3f;
 			break;
 		}
 	}
