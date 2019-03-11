@@ -42,6 +42,7 @@ void MoveBullets(SDL_Renderer* renderer);
 SDL_Event event;
 
 SDL_Rect square{ 100,100,100,100 };
+int square_speed = 1;
 
 PlayerInput player_input;
 bool loop = true;
@@ -142,16 +143,16 @@ void Input()
 	}
 
 	if (player_input.pressing_A) {
-		square.x -= 1;
+		square.x -= square_speed;
 	}
 	if (player_input.pressing_D) {
-		square.x += 1;
+		square.x += square_speed;
 	}
 	if (player_input.pressing_W) {
-		square.y -= 1;
+		square.y -= square_speed;
 	}
 	if (player_input.pressing_S) {
-		square.y += 1;
+		square.y += square_speed;
 	}
 }
 
