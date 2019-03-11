@@ -1,7 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <ctime>
-using namespace std;
+
 #include "SDL/include/SDL.h"
 #include "SDL_Mixer/include/SDL_mixer.h"
 
@@ -13,6 +13,7 @@ using namespace std;
 #define WINDOW_WIDTH 1100
 #define WINDOW_HEIGHT 700
 #define MAX_ACTIVE_BULLETS 10
+#define MAX_ENEMY_BULLETS 5
 #define MAX_ACTIVE_ENEMIES 5
 
 
@@ -37,28 +38,56 @@ struct Bullet {
 
 Bullet* active_bullets[MAX_ACTIVE_BULLETS];
 
+struct EnemyBullet {
+	int speed;
+	int speed_y;
+	SDL_Rect bullet;
+	EnemyBullet() {
+		bullet.x = 0;
+		bullet.y = 0;
+		bullet.w = 30;
+		bullet.h = 20;
+		speed = 1;
+		speed_y = 0;
+	}
+
+};
+EnemyBullet* active_enemy_bullets[MAX_ENEMY_BULLETS];
+
+enum class EnemyMovementType {
+	STRAIGHT_ON,
+	SINUS,
+
+	NONE
+};
+
 struct Enemy {
 	SDL_Rect enemy_rect;
 	int speed;
-	int mov;
-	Enemy(int x, int y) {
+	EnemyMovementType type;
+	Enemy(int x, int y, EnemyMovementType type) {
 		enemy_rect.x = x;
 		enemy_rect.y = y;
 		enemy_rect.w = 80;
 		enemy_rect.h = 40;
 		speed = 1;
-		mov = 0;
+		this->type = type;
 	}
+	int time = 0;
+	bool left_finished = false;
+	bool Update();
+	void CreateEnemyBullet();
 };
 
 Enemy* active_enemies[MAX_ACTIVE_ENEMIES];
 
+
 void Input();
 void CreateBullet();
 void MoveBullets(SDL_Renderer* renderer);
-void CreateEnemies();
 void CheckCollisionBulletEnemy();
 void MoveEnemies(SDL_Renderer* renderer);
+
 
 SDL_Event event;
 
@@ -67,7 +96,7 @@ int square_speed = 1;
 
 PlayerInput player_input;
 bool loop = true;
-bool enemies_created = false;
+
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -81,9 +110,6 @@ int main(int argc, char* argv[]) {
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
 	while (loop) {
-
-		if (!enemies_created)
-			CreateEnemies();
 
 		Input();
 		CheckCollisionBulletEnemy();
@@ -201,16 +227,20 @@ void MoveBullets(SDL_Renderer* renderer)
 			}
 		}
 	}
-}
-
-void CreateEnemies()
-{
-	active_enemies[0] = new Enemy(1500, 200);
-	active_enemies[1] = new Enemy(2500, 400);
-	active_enemies[2] = new Enemy(2100, 350);
-	active_enemies[3] = new Enemy(1900, 500);
-
-	enemies_created = true;
+	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
+		if (active_enemy_bullets[i] != nullptr) {
+			if (active_enemy_bullets[i]->bullet.x + active_enemy_bullets[i]->bullet.w <= 0) {
+				delete active_enemy_bullets[i];
+				active_enemy_bullets[i] = nullptr;
+			}
+			else {
+				active_enemy_bullets[i]->bullet.x += active_enemy_bullets[i]->speed;
+				active_enemy_bullets[i]->bullet.y += active_enemy_bullets[i]->speed_y;
+				SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+				SDL_RenderFillRect(renderer, &active_enemy_bullets[i]->bullet);
+			}
+		}
+	}
 }
 
 void MoveEnemies(SDL_Renderer * renderer)
@@ -222,20 +252,36 @@ void MoveEnemies(SDL_Renderer * renderer)
 		{
 			if (active_enemies[i] != nullptr) { //if the enemy exists
 				if (active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w <= 0) { //if the enemy is out of the screen 
-					active_enemies[i]->enemy_rect.y = rand() % 700;
 					active_enemies[i]->enemy_rect.x = 1100;
-					delete active_bullets[i];
-					active_bullets[i] = nullptr;
+					active_enemies[i]->enemy_rect.y = rand() % 650;
 				}
 				else {
-					active_enemies[i]->enemy_rect.x -= active_enemies[i]->speed;
-					SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-					SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
+					if (active_enemies[i]->Update()) {
+						SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+						SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
+					}
+					else {
+						delete active_enemies[i];
+						active_enemies[i] = nullptr;
+					}
+
+		
 				}
 			}
 			else //if it doesn't exist create one in a random place
 			{
-				active_enemies[i] = new Enemy(rand() % 700, 1100);
+				int num_type = rand() % 2;
+				switch (num_type) {
+				case 0:
+					active_enemies[i] = new Enemy(1100, rand() % 650, EnemyMovementType::SINUS);
+					break;
+				case 1:
+					active_enemies[i] = new Enemy(1100, rand() % 650, EnemyMovementType::STRAIGHT_ON);
+					break;
+				default:
+					break;
+				}
+				
 			}
 		}
 		//else if(kind==1)
@@ -270,9 +316,11 @@ void MoveEnemies(SDL_Renderer * renderer)
 	}
 }
 
+
+
+
 void CheckCollisionBulletEnemy()
 {
-
 	for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
 		if (active_bullets[i] != nullptr) {
 			for (int j = 0; j < MAX_ACTIVE_ENEMIES; ++j) {
@@ -289,4 +337,55 @@ void CheckCollisionBulletEnemy()
 		}
 	}
 
+}
+
+bool Enemy::Update()
+{
+	bool ret = true;
+	switch (type) {
+	case EnemyMovementType::STRAIGHT_ON:
+		enemy_rect.x -= speed;
+		break;
+	case EnemyMovementType::SINUS:
+		
+		if (!left_finished) {
+			if (enemy_rect.x >= WINDOW_WIDTH - 300) {
+				enemy_rect.x -= speed;
+				time = SDL_GetTicks();
+			}
+			else if (time < SDL_GetTicks() - 500) {
+				CreateEnemyBullet();
+				left_finished = true;
+			}
+		}
+		else {
+			enemy_rect.x += speed;
+			if (enemy_rect.x > WINDOW_WIDTH)
+				ret = false;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return ret;
+}
+
+void Enemy::CreateEnemyBullet()
+{
+	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
+		if (active_enemy_bullets[i] == nullptr) {
+			active_enemy_bullets[i] = new EnemyBullet();
+			active_enemy_bullets[i]->bullet.x = enemy_rect.x;
+			active_enemy_bullets[i]->bullet.y = enemy_rect.y + square.h / 2 - active_enemy_bullets[i]->bullet.h / 2;
+			int x = square.x - enemy_rect.x;
+			int y = square.y - enemy_rect.y;
+			float m = sqrt((x*x) + (y*y));
+			x = x / m;
+			y = y / m;
+			active_enemy_bullets[i]->speed = x * 1.8f;
+			active_enemy_bullets[i]->speed_y = y * 1.8f;
+			break;
+		}
+	}
 }
