@@ -1,3 +1,7 @@
+#include <iostream>
+#include <time.h>
+#include <ctime>
+using namespace std;
 #include "SDL/include/SDL.h"
 #include "SDL_Mixer/include/SDL_mixer.h"
 
@@ -8,7 +12,7 @@
 
 #define WINDOW_WIDTH 1100
 #define WINDOW_HEIGHT 700
-#define MAX_ACTIVE_BULLETS 5
+#define MAX_ACTIVE_BULLETS 10
 #define MAX_ACTIVE_ENEMIES 5
 
 
@@ -36,12 +40,14 @@ Bullet* active_bullets[MAX_ACTIVE_BULLETS];
 struct Enemy {
 	SDL_Rect enemy_rect;
 	int speed;
+	int mov;
 	Enemy(int x, int y) {
 		enemy_rect.x = x;
 		enemy_rect.y = y;
 		enemy_rect.w = 80;
 		enemy_rect.h = 40;
 		speed = 1;
+		mov = 0;
 	}
 };
 
@@ -54,7 +60,6 @@ void CreateEnemies();
 void CheckCollisionBulletEnemy();
 void MoveEnemies(SDL_Renderer* renderer);
 
-
 SDL_Event event;
 
 SDL_Rect square{ 100,100,100,100 };
@@ -65,12 +70,9 @@ bool loop = true;
 bool enemies_created = false;
 
 int main(int argc, char* argv[]) {
-
 	SDL_Init(SDL_INIT_EVERYTHING);
 	Mix_Init(SDL_INIT_AUDIO);
-
 	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT, 2, AUDIO_S16SYS);
-
 	Mix_Chunk *fx_sound = nullptr;
 	fx_sound = Mix_LoadWAV("fx/fx.wav");
 
@@ -94,7 +96,7 @@ int main(int argc, char* argv[]) {
 		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 		SDL_RenderPresent(renderer);
 	
-
+		SDL_Delay(1);
 		SDL_RenderClear(renderer);
 	}
 
@@ -213,18 +215,58 @@ void CreateEnemies()
 
 void MoveEnemies(SDL_Renderer * renderer)
 {
+	//int kind = 0,time=0;
 	for (int i = 0; i < MAX_ACTIVE_ENEMIES; ++i) {
-		if (active_enemies[i] != nullptr) {
-			if (active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w <= 0) {
-				delete active_bullets[i];
-				active_bullets[i] = nullptr;
+		//kind= rand() % 2;
+		//if (kind==0)
+		{
+			if (active_enemies[i] != nullptr) { //if the enemy exists
+				if (active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w <= 0) { //if the enemy is out of the screen 
+					active_enemies[i]->enemy_rect.y = rand() % 700;
+					active_enemies[i]->enemy_rect.x = 1100;
+					delete active_bullets[i];
+					active_bullets[i] = nullptr;
+				}
+				else {
+					active_enemies[i]->enemy_rect.x -= active_enemies[i]->speed;
+					SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+					SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
+				}
 			}
-			else {
-				active_enemies[i]->enemy_rect.x -= active_enemies[i]->speed;
-				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-				SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
+			else //if it doesn't exist create one in a random place
+			{
+				active_enemies[i] = new Enemy(rand() % 700, 1100);
 			}
 		}
+		//else if(kind==1)
+		/*{
+			if (active_enemies[i] != nullptr) { //if the enemy exists
+				if (active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w <= 0) { //if the enemy is out of the screen 
+					active_enemies[i]->enemy_rect.y = rand() % 700;
+					active_enemies[i]->enemy_rect.x = 1100;
+					delete active_bullets[i];
+					active_bullets[i] = nullptr;
+				}
+				else {
+					active_enemies[i]->enemy_rect.x -= active_enemies[i]->speed;
+					if (active_enemies[i]->enemy_rect.y<=700) //if the enemy is 
+					{
+						active_enemies[i]->enemy_rect.y -= 2*(active_enemies[i]->speed);
+					}
+					else
+					{
+						active_enemies[i]->enemy_rect.y -= active_enemies[i]->speed;
+					}
+					SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+					SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
+				}
+			}
+			else //if it doesn't exist create one in a random place
+			{
+				active_enemies[i] = new Enemy(rand() % 700, 1100);
+			}
+		}*/
+
 	}
 }
 
