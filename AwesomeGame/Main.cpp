@@ -142,18 +142,19 @@ void Input()
 		}
 	}
 
-	if (player_input.pressing_A) {
+	if (player_input.pressing_A && square.x >= 0) {
 		square.x -= square_speed;
 	}
-	if (player_input.pressing_D) {
+	if (player_input.pressing_D && square.x <= WINDOW_WIDTH - square.w) {
 		square.x += square_speed;
 	}
-	if (player_input.pressing_W) {
+	if (player_input.pressing_W && square.y >= 0) {
 		square.y -= square_speed;
 	}
-	if (player_input.pressing_S) {
+	if (player_input.pressing_S && square.y <= WINDOW_HEIGHT - square.h) {
 		square.y += square_speed;
 	}
+	
 }
 
 void MoveBullets(SDL_Renderer* renderer)
