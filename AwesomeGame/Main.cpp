@@ -19,8 +19,6 @@ struct PlayerInput {
 }; 
 
 struct Bullet {
-
-
 	int speed;
 	SDL_Rect bullet;
 	Bullet() {
@@ -29,13 +27,6 @@ struct Bullet {
 		bullet.w = 30;
 		bullet.h = 20;
 		speed = 1;
-	}
-	Bullet(int x, int y) {
-		bullet.x = x;
-		bullet.y = y;
-		bullet.w = 30;
-		bullet.y = 20;
-		speed = 0;
 	}
 };
 
@@ -167,20 +158,16 @@ void Input()
 void MoveBullets(SDL_Renderer* renderer)
 {
 	for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
-
-		Bullet* b = active_bullets[i];
-
-		if (b == nullptr)
-			continue;
-
-		if (b->bullet.x >= WINDOW_WIDTH) {
-			delete b;
-			active_bullets[i] = nullptr;
-		}
-		else {
-			b->bullet.x += b->speed;
-			SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-			SDL_RenderFillRect(renderer, &b->bullet);
+		if (active_bullets[i] != nullptr) {
+			if (active_bullets[i]->bullet.x >= WINDOW_WIDTH) {
+				delete active_bullets[i];
+				active_bullets[i] = nullptr;
+			}
+			else {
+				active_bullets[i]->bullet.x += active_bullets[i]->speed;
+				SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+				SDL_RenderFillRect(renderer, &active_bullets[i]->bullet);
+			}
 		}
 	}
 }
