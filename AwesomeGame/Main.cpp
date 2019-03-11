@@ -1,11 +1,20 @@
 #include "SDL/include/SDL.h"
+#include "SDL_Mixer/include/SDL_mixer.h"
+
 
 #pragma comment (lib, "SDL/libx86/SDL2.lib")
 #pragma comment (lib, "SDL/libx86/SDL2main.lib")
+#pragma comment (lib, "SDL_Mixer/libx86/SDL2_mixer.lib")
 
 int main(int argc, char* argv[]) {
 
 	SDL_Init(SDL_INIT_EVERYTHING);
+	Mix_Init(SDL_INIT_AUDIO);
+
+	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT, 2, AUDIO_S16SYS);
+
+	Mix_Chunk *fx_sound = nullptr;
+	fx_sound = Mix_LoadWAV("fx/fx.wav");
 
 	bool loop = true;
 	bool bullet_on = false;
@@ -65,6 +74,7 @@ int main(int argc, char* argv[]) {
 					}
 				}
 				if (event.key.keysym.scancode == SDL_SCANCODE_SPACE) {
+					Mix_PlayChannel(1,fx_sound,1);
 					bullet_on = true;
 					bullet.bullet.x = square.x + square.w - 10;
 					bullet.bullet.y = square.y + (square.h / 2) - 15;
