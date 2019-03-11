@@ -41,7 +41,7 @@ struct Enemy {
 		enemy_rect.y = y;
 		enemy_rect.w = 80;
 		enemy_rect.h = 40;
-		speed = 0;
+		speed = 1;
 	}
 };
 
@@ -203,10 +203,10 @@ void MoveBullets(SDL_Renderer* renderer)
 
 void CreateEnemies()
 {
-	active_enemies[0] = new Enemy(500, 200);
-	active_enemies[1] = new Enemy(500, 400);
-	active_enemies[2] = new Enemy(100, 350);
-	active_enemies[3] = new Enemy(900, 500);
+	active_enemies[0] = new Enemy(1500, 200);
+	active_enemies[1] = new Enemy(2500, 400);
+	active_enemies[2] = new Enemy(2100, 350);
+	active_enemies[3] = new Enemy(1900, 500);
 
 	enemies_created = true;
 }
