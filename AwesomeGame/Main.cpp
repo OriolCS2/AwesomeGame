@@ -252,8 +252,8 @@ void MoveEnemies(SDL_Renderer * renderer)
 		{
 			if (active_enemies[i] != nullptr) { //if the enemy exists
 				if (active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w <= 0) { //if the enemy is out of the screen 
-					active_enemies[i]->enemy_rect.x = 1100;
-					active_enemies[i]->enemy_rect.y = rand() % 650;
+					delete active_enemies[i];
+					active_enemies[i] = nullptr;
 				}
 				else {
 					if (active_enemies[i]->Update()) {
@@ -264,8 +264,6 @@ void MoveEnemies(SDL_Renderer * renderer)
 						delete active_enemies[i];
 						active_enemies[i] = nullptr;
 					}
-
-		
 				}
 			}
 			else //if it doesn't exist create one in a random place
@@ -378,13 +376,13 @@ void Enemy::CreateEnemyBullet()
 			active_enemy_bullets[i] = new EnemyBullet();
 			active_enemy_bullets[i]->bullet.x = enemy_rect.x;
 			active_enemy_bullets[i]->bullet.y = enemy_rect.y + square.h / 2 - active_enemy_bullets[i]->bullet.h / 2;
-			int x = square.x - enemy_rect.x;
-			int y = square.y - enemy_rect.y;
+			float x = square.x - enemy_rect.x;
+			float y = square.y - enemy_rect.y;
 			float m = sqrt((x*x) + (y*y));
 			x = x / m;
 			y = y / m;
-			active_enemy_bullets[i]->speed = x * 1.8f;
-			active_enemy_bullets[i]->speed_y = y * 1.8f;
+			active_enemy_bullets[i]->speed = x * 2.6f;
+			active_enemy_bullets[i]->speed_y = y * 2.6f;
 			break;
 		}
 	}
