@@ -9,6 +9,7 @@
 #define WINDOW_WIDTH 1100
 #define WINDOW_HEIGHT 700
 #define MAX_ACTIVE_BULLETS 5
+#define MAX_ACTIVE_ENEMIES 5
 
 
 struct PlayerInput {
@@ -30,13 +31,27 @@ struct Bullet {
 	}
 };
 
-Bullet *active_bullets[MAX_ACTIVE_BULLETS];
+Bullet* active_bullets[MAX_ACTIVE_BULLETS];
 
+struct Enemy {
+	SDL_Rect enemy_rect;
+	int speed;
+	Enemy(int x, int y) {
+		enemy_rect.x = x;
+		enemy_rect.y = y;
+		enemy_rect.w = 80;
+		enemy_rect.h = 40;
+		speed = 1;
+	}
+};
 
+Enemy* active_enemies[MAX_ACTIVE_ENEMIES];
 
 void Input();
+void CreateBullet();
 void MoveBullets(SDL_Renderer* renderer);
-
+void CreateEnemies();
+void MoveEnemies(SDL_Renderer* renderer);
 
 
 SDL_Event event;
@@ -46,6 +61,7 @@ int square_speed = 1;
 
 PlayerInput player_input;
 bool loop = true;
+bool enemies_created = false;
 
 int main(int argc, char* argv[]) {
 
@@ -63,8 +79,12 @@ int main(int argc, char* argv[]) {
 
 	while (loop) {
 
+		if (!enemies_created)
+			CreateEnemies();
+
 		Input();
 		MoveBullets(renderer);
+		MoveEnemies(renderer);
 
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		SDL_RenderFillRect(renderer, &square);
@@ -103,14 +123,7 @@ void Input()
 				player_input.pressing_W = true;
 				break;
 			case SDL_SCANCODE_SPACE:
-				for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
-					if (active_bullets[i] == nullptr) {
-						active_bullets[i] = new Bullet();
-						active_bullets[i]->bullet.x = square.x + square.w;
-						active_bullets[i]->bullet.y = square.y + square.h / 2 - active_bullets[i]->bullet.h / 2;
-						break;
-					}
-				}
+				CreateBullet();
 				break;
 			case SDL_SCANCODE_ESCAPE:
 				loop = false;
@@ -157,6 +170,18 @@ void Input()
 	
 }
 
+void CreateBullet()
+{
+	for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
+		if (active_bullets[i] == nullptr) {
+			active_bullets[i] = new Bullet();
+			active_bullets[i]->bullet.x = square.x + square.w;
+			active_bullets[i]->bullet.y = square.y + square.h / 2 - active_bullets[i]->bullet.h / 2;
+			break;
+		}
+	}
+}
+
 void MoveBullets(SDL_Renderer* renderer)
 {
 	for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
@@ -172,4 +197,34 @@ void MoveBullets(SDL_Renderer* renderer)
 			}
 		}
 	}
+}
+
+void CreateEnemies()
+{
+	active_enemies[0] = new Enemy(1500, 200);
+	active_enemies[1] = new Enemy(2500, 400);
+	active_enemies[2] = new Enemy(2100, 350);
+	active_enemies[3] = new Enemy(1900, 500);
+
+	enemies_created = true;
+}
+
+void MoveEnemies(SDL_Renderer * renderer)
+{
+	for (int i = 0; i < MAX_ACTIVE_ENEMIES; ++i) {
+		if (active_enemies[i] != nullptr) {
+			if (active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w <= 0) {
+				delete active_bullets[i];
+				active_bullets[i] = nullptr;
+			}
+			else {
+				active_enemies[i]->enemy_rect.x -= active_enemies[i]->speed;
+				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+				SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
+			}
+		}
+	}
+
+
+
 }
