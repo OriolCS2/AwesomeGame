@@ -41,7 +41,7 @@ struct Enemy {
 		enemy_rect.y = y;
 		enemy_rect.w = 80;
 		enemy_rect.h = 40;
-		speed = 1;
+		speed = 0;
 	}
 };
 
@@ -51,6 +51,7 @@ void Input();
 void CreateBullet();
 void MoveBullets(SDL_Renderer* renderer);
 void CreateEnemies();
+void CheckCollisionBulletEnemy();
 void MoveEnemies(SDL_Renderer* renderer);
 
 
@@ -83,6 +84,7 @@ int main(int argc, char* argv[]) {
 			CreateEnemies();
 
 		Input();
+		CheckCollisionBulletEnemy();
 		MoveBullets(renderer);
 		MoveEnemies(renderer);
 
@@ -201,10 +203,10 @@ void MoveBullets(SDL_Renderer* renderer)
 
 void CreateEnemies()
 {
-	active_enemies[0] = new Enemy(1500, 200);
-	active_enemies[1] = new Enemy(2500, 400);
-	active_enemies[2] = new Enemy(2100, 350);
-	active_enemies[3] = new Enemy(1900, 500);
+	active_enemies[0] = new Enemy(500, 200);
+	active_enemies[1] = new Enemy(500, 400);
+	active_enemies[2] = new Enemy(100, 350);
+	active_enemies[3] = new Enemy(900, 500);
 
 	enemies_created = true;
 }
@@ -224,7 +226,25 @@ void MoveEnemies(SDL_Renderer * renderer)
 			}
 		}
 	}
+}
 
+void CheckCollisionBulletEnemy()
+{
 
+	for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
+		if (active_bullets[i] != nullptr) {
+			for (int j = 0; j < MAX_ACTIVE_ENEMIES; ++j) {
+				if (active_enemies[j] != nullptr) {
+					if (active_enemies[j]->enemy_rect.x <= active_bullets[i]->bullet.x + active_bullets[i]->bullet.w && active_bullets[i]->bullet.y + active_bullets[i]->bullet.h / 2 >= active_enemies[j]->enemy_rect.y && active_bullets[i]->bullet.y + active_bullets[i]->bullet.h / 2 <= active_enemies[j]->enemy_rect.y + active_enemies[j]->enemy_rect.h) {
+						delete active_bullets[i];
+						active_bullets[i] = nullptr;
+						delete active_enemies[j];
+						active_enemies[j] = nullptr;
+						break;
+					}
+				}
+			}
+		}
+	}
 
 }
