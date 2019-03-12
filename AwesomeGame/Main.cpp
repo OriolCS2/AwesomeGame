@@ -81,6 +81,7 @@ struct Enemy {
 
 Enemy* active_enemies[MAX_ACTIVE_ENEMIES];
 
+bool game_on = false;
 
 void Input();
 void CreateBullet();
@@ -88,11 +89,13 @@ void MoveBullets(SDL_Renderer* renderer);
 void CheckCollisionBulletEnemy();
 void MoveEnemies(SDL_Renderer* renderer);
 void CheckPlayerCollision();
+void Spawn(SDL_Renderer* renderer);
 
+int lives = 3;
 
 SDL_Event event;
 
-SDL_Rect square{ 100,100,120,70 };
+SDL_Rect square{ -200, WINDOW_HEIGHT/2 - 35,120,70 };
 int square_speed = 1;
 
 PlayerInput player_input;
@@ -104,7 +107,12 @@ SDL_Texture* enemy_2 = nullptr;
 SDL_Texture* laser_player1 = nullptr;
 SDL_Texture* laser_enemy = nullptr;
 
+SDL_Texture* red_Square = nullptr;
+
 bool player_alive = true;
+bool spawning = true;
+bool being_immortal = true;
+int time_immortal = 0;
 
 
 int main(int argc, char* argv[]) {
@@ -121,7 +129,7 @@ int main(int argc, char* argv[]) {
 
 	// player
 	SDL_Surface* p = IMG_Load("ships/player_ship.png"); 
-	SDL_Texture* red_Square = SDL_CreateTextureFromSurface(renderer, p);
+	red_Square = SDL_CreateTextureFromSurface(renderer, p);
 	SDL_FreeSurface(p);
 	// enemy 1
 	SDL_Surface* e1 = IMG_Load("ships/enemy_1.png");
@@ -150,23 +158,48 @@ int main(int argc, char* argv[]) {
 
 	while (loop) {
 
-		SDL_RenderCopy(renderer, background_texture, NULL, NULL);
-		CheckPlayerCollision();
+		if (game_on) {
+			SDL_RenderCopy(renderer, background_texture, NULL, NULL);
+			if (!spawning) {
+				if (!being_immortal)
+					CheckPlayerCollision();
+			}
+			else {
+				Spawn(renderer);
+			}
+			Input();
+			if (being_immortal && SDL_GetTicks() - 1000 >= time_immortal) {
+				being_immortal = false;
+			}
+			CheckCollisionBulletEnemy();
+			MoveBullets(renderer);
+			MoveEnemies(renderer);
 
-		Input();
 
-		CheckCollisionBulletEnemy();
-		MoveBullets(renderer);
-		MoveEnemies(renderer);
+			if (player_alive)
+				SDL_RenderCopy(renderer, red_Square, NULL, &square);
+			SDL_RenderPresent(renderer);
+			SDL_Delay(1);
 
-		
-		if (player_alive)
-			SDL_RenderCopy(renderer, red_Square, NULL, &square);
+		}
+		else {
 
-		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-		SDL_RenderPresent(renderer);
-		
-		SDL_Delay(1);
+			if (SDL_PollEvent(&event) != 0) {
+				if (event.key.keysym.scancode == SDL_SCANCODE_SPACE)
+					game_on = true;
+				if (event.type == SDL_QUIT) {
+					loop = false;
+				}
+				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+					loop = false;
+				}
+			}
+
+			SDL_RenderCopy(renderer, background_texture, NULL, NULL);
+			SDL_RenderPresent(renderer);
+
+		}
+
 		SDL_RenderClear(renderer);
 	}
 
@@ -378,6 +411,10 @@ void CheckPlayerCollision()
 		if (active_enemies[i] != nullptr) {
 			if (square.x + square.w >= active_enemies[i]->enemy_rect.x && square.y + square.h / 2 >= active_enemies[i]->enemy_rect.y && square.y + square.h / 2 <= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) {
 				player_alive = false;
+				--lives;
+				square.x = -300;
+				square.y = WINDOW_HEIGHT / 2 - square.h / 2;
+				spawning = true;
 				delete active_enemies[i];
 				active_enemies[i] = nullptr;
 			}
@@ -387,10 +424,51 @@ void CheckPlayerCollision()
 		if (active_enemy_bullets[i] != nullptr) {
 			if (square.x + square.w >= active_enemy_bullets[i]->bullet.x && square.y + square.h / 2 >= active_enemy_bullets[i]->bullet.y && square.y + square.h / 2 <= active_enemy_bullets[i]->bullet.y + active_enemy_bullets[i]->bullet.h) {
 				player_alive = false;
+				--lives;
+				square.x = -300;
+				square.y = WINDOW_HEIGHT / 2 - square.h / 2;
+				spawning = true;
 				delete active_enemy_bullets[i];
 				active_enemy_bullets[i] = nullptr;
 			}
 		}
+	}
+}
+
+void Spawn(SDL_Renderer* renderer)
+{
+	
+	if (square.x >= 50) {
+		spawning = false;
+		player_alive = true;
+		being_immortal = true;
+		time_immortal = SDL_GetTicks();
+	}
+	else if (lives == 0) {
+		game_on = false;
+		for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
+			if (active_bullets[i] != nullptr) {
+				delete active_bullets[i];
+				active_bullets[i] = nullptr;
+			}
+		}
+		for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
+			if (active_enemy_bullets[i] != nullptr) {
+				delete active_enemy_bullets[i];
+				active_enemy_bullets[i] = nullptr;
+			}
+		}
+		for (int i = 0; i < MAX_ACTIVE_ENEMIES; ++i) {
+			if (active_enemies[i] != nullptr) {
+				delete active_enemies[i];
+				active_enemies[i] = nullptr;
+			}
+		}
+		lives = 3;
+	}
+	else {
+		SDL_RenderCopy(renderer, red_Square, NULL, &square);
+		square.x += square_speed;
 	}
 }
 
