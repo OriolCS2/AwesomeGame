@@ -19,7 +19,6 @@
 #define MAX_ACTIVE_ENEMIES 5
 #define MAX_EXPLOSIONS 25
 
-
 struct PlayerInput {
 	bool pressing_W = false;
 	bool pressing_A = false;
@@ -109,6 +108,7 @@ void Spawn(SDL_Renderer* renderer);
 void BlitAnims(SDL_Renderer* renderer);
 
 int lives = 3;
+int score = 0;
 
 SDL_Event event;
 
@@ -633,9 +633,6 @@ void BlitAnims(SDL_Renderer * renderer)
 	}
 }
 
-
-
-
 void CheckCollisionBulletEnemy()
 {
 	for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
@@ -654,6 +651,7 @@ void CheckCollisionBulletEnemy()
 						}
 						delete active_enemies[j];
 						active_enemies[j] = nullptr;
+						score++;
 						break;
 					}
 				}
