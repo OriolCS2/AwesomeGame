@@ -103,6 +103,8 @@ SDL_Texture* enemy_1 = nullptr;
 SDL_Texture* enemy_2 = nullptr;
 
 SDL_Texture* laser_player1 = nullptr;
+SDL_Texture* laser_enemy = nullptr;
+
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -138,6 +140,11 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* l1 = IMG_Load("lasers/laser_player1.png");
 	laser_player1 = SDL_CreateTextureFromSurface(renderer, l1);
 	SDL_FreeSurface(l1);
+
+	//laser enemy 1
+	SDL_Surface* le1 = IMG_Load("lasers/laser_enemy.png");
+	laser_enemy = SDL_CreateTextureFromSurface(renderer, le1);
+	SDL_FreeSurface(le1);
 
 
 	while (loop) {
@@ -273,8 +280,9 @@ void MoveBullets(SDL_Renderer* renderer)
 			else {
 				active_enemy_bullets[i]->bullet.x += active_enemy_bullets[i]->speed;
 				active_enemy_bullets[i]->bullet.y += active_enemy_bullets[i]->speed_y;
-				SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-				SDL_RenderFillRect(renderer, &active_enemy_bullets[i]->bullet);
+				SDL_RenderCopy(renderer, laser_enemy, NULL, &active_enemy_bullets[i]->bullet);
+				//SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+				//SDL_RenderFillRect(renderer, &active_enemy_bullets[i]->bullet);
 			}
 		}
 	}
