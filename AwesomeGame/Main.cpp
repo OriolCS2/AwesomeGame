@@ -140,10 +140,15 @@ int main(int argc, char* argv[]) {
 	enemy_2 = SDL_CreateTextureFromSurface(renderer, e2);
 	SDL_FreeSurface(e2);
 
-	//background
+	//background 1
 	SDL_Surface* b = IMG_Load("background/simpsons_background.png");
 	SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, b);
 	SDL_FreeSurface(b);
+	
+	//background 2
+	SDL_Surface* b2 = IMG_Load("background/background1.png");
+	SDL_Texture* background_texture2 = SDL_CreateTextureFromSurface(renderer, b2);
+	SDL_FreeSurface(b2);
 
 	//laser player 1
 	SDL_Surface* l1 = IMG_Load("lasers/laser_player1.png");
@@ -159,7 +164,7 @@ int main(int argc, char* argv[]) {
 	while (loop) {
 
 		if (game_on) {
-			SDL_RenderCopy(renderer, background_texture, NULL, NULL);
+			SDL_RenderCopy(renderer, background_texture2, NULL, NULL);
 			if (!spawning) {
 				if (!being_immortal)
 					CheckPlayerCollision();
@@ -185,7 +190,7 @@ int main(int argc, char* argv[]) {
 		else {
 
 			if (SDL_PollEvent(&event) != 0) {
-				if (event.key.keysym.scancode == SDL_SCANCODE_SPACE)
+				if (event.key.keysym.scancode == SDL_SCANCODE_RETURN)
 					game_on = true;
 				if (event.type == SDL_QUIT) {
 					loop = false;
