@@ -99,6 +99,7 @@ int square_speed = 1;
 PlayerInput player_input;
 bool loop = true;
 
+SDL_Texture* enemy_1 = nullptr;
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -112,10 +113,15 @@ int main(int argc, char* argv[]) {
 		SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
+	// player
+	SDL_Surface* p = IMG_Load("ships/player_ship.png"); 
+	SDL_Texture* red_Square = SDL_CreateTextureFromSurface(renderer, p);
+	SDL_FreeSurface(p);
+	// enemy 1
+	SDL_Surface* e1 = IMG_Load("ships/enemy_1.png");
+	enemy_1 = SDL_CreateTextureFromSurface(renderer, e1);
+	SDL_FreeSurface(e1);
 
-	SDL_Surface* red_square = IMG_Load("ships/player_ship.png");
-	SDL_Texture* red_Square = SDL_CreateTextureFromSurface(renderer, red_square);
-	SDL_FreeSurface(red_square);
 
 	while (loop) {
 
@@ -125,6 +131,7 @@ int main(int argc, char* argv[]) {
 		MoveEnemies(renderer);
 
 		SDL_RenderCopy(renderer, red_Square, NULL, &square);
+	
 		
 		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 		SDL_RenderPresent(renderer);
@@ -266,8 +273,9 @@ void MoveEnemies(SDL_Renderer * renderer)
 				}
 				else {
 					if (active_enemies[i]->Update()) {
-						SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-						SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
+						SDL_RenderCopy(renderer, enemy_1, NULL, &active_enemies[i]->enemy_rect);
+						//SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+						//SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
 					}
 					else {
 						delete active_enemies[i];
