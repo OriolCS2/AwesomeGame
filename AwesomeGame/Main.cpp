@@ -4,11 +4,13 @@
 
 #include "SDL/include/SDL.h"
 #include "SDL_Mixer/include/SDL_mixer.h"
+#include "SDL_image/include/SDL_image.h"
 
 
 #pragma comment (lib, "SDL/libx86/SDL2.lib")
 #pragma comment (lib, "SDL/libx86/SDL2main.lib")
 #pragma comment (lib, "SDL_Mixer/libx86/SDL2_mixer.lib")
+#pragma comment (lib, "SDL_image/libx86/SDL2_image.lib")
 
 #define WINDOW_WIDTH 1100
 #define WINDOW_HEIGHT 700
@@ -56,7 +58,7 @@ EnemyBullet* active_enemy_bullets[MAX_ENEMY_BULLETS];
 
 enum class EnemyMovementType {
 	STRAIGHT_ON,
-	SINUS,
+	STAY_SHOT,
 
 	NONE
 };
@@ -101,6 +103,7 @@ bool loop = true;
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	Mix_Init(SDL_INIT_AUDIO);
+	IMG_Init(IMG_INIT_PNG);
 	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT, 2, AUDIO_S16SYS);
 	Mix_Chunk *fx_sound = nullptr;
 	fx_sound = Mix_LoadWAV("fx/fx.wav");
@@ -126,6 +129,8 @@ int main(int argc, char* argv[]) {
 		SDL_RenderClear(renderer);
 	}
 
+	IMG_Quit();
+	//SDL_AudioQuit();
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	return 0;
@@ -271,10 +276,10 @@ void MoveEnemies(SDL_Renderer * renderer)
 				int num_type = rand() % 2;
 				switch (num_type) {
 				case 0:
-					active_enemies[i] = new Enemy(1100, rand() % 650, EnemyMovementType::SINUS);
+					active_enemies[i] = new Enemy(1100 + rand() % 100, rand() % 650, EnemyMovementType::STAY_SHOT);
 					break;
 				case 1:
-					active_enemies[i] = new Enemy(1100, rand() % 650, EnemyMovementType::STRAIGHT_ON);
+					active_enemies[i] = new Enemy(1100 + rand() % 100, rand() % 650, EnemyMovementType::STRAIGHT_ON);
 					break;
 				default:
 					break;
@@ -344,8 +349,7 @@ bool Enemy::Update()
 	case EnemyMovementType::STRAIGHT_ON:
 		enemy_rect.x -= speed;
 		break;
-	case EnemyMovementType::SINUS:
-		
+	case EnemyMovementType::STAY_SHOT:
 		if (!left_finished) {
 			if (enemy_rect.x >= WINDOW_WIDTH - 300) {
 				enemy_rect.x -= speed;
