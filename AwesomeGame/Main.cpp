@@ -114,14 +114,18 @@ bool spawning = true;
 bool being_immortal = true;
 int time_immortal = 0;
 
+Mix_Chunk *player_laser = nullptr;
+Mix_Chunk *enemy_laser = nullptr;
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	Mix_Init(SDL_INIT_AUDIO);
 	IMG_Init(IMG_INIT_PNG);
-	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT, 2, AUDIO_S16SYS);
-	Mix_Chunk *fx_sound = nullptr;
-	fx_sound = Mix_LoadWAV("fx/fx.wav");
+	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT, 2, 1000);
+	
+	
+	player_laser = Mix_LoadWAV("fx/player_laser.wav");
+	enemy_laser = Mix_LoadWAV("fx/aaaaaaaaaaa.wav");
 
 	SDL_Window* window = SDL_CreateWindow("Awesome Game", SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
@@ -208,8 +212,12 @@ int main(int argc, char* argv[]) {
 		SDL_RenderClear(renderer);
 	}
 
+
+	//Mix_FreeChunk(player_laser);
+
 	IMG_Quit();
-	//SDL_AudioQuit();
+	//Mix_CloseAudio();
+	//Mix_Quit();
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	return 0;
@@ -237,8 +245,10 @@ void Input()
 				player_input.pressing_W = true;
 				break;
 			case SDL_SCANCODE_SPACE:
-				if (player_alive)
+				if (player_alive) {
+					Mix_PlayChannel(-1, player_laser,0);
 					CreateBullet();
+				}
 				break;
 			case SDL_SCANCODE_ESCAPE:
 				loop = false;
@@ -514,6 +524,7 @@ bool Enemy::Update()
 				time = SDL_GetTicks();
 			}
 			else if (time < SDL_GetTicks() - 500) {
+				Mix_PlayChannel(-1, enemy_laser, 0);
 				CreateEnemyBullet();
 				left_finished = true;
 			}
