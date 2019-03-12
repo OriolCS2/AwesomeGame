@@ -17,6 +17,7 @@
 #define MAX_ACTIVE_BULLETS 10
 #define MAX_ENEMY_BULLETS 5
 #define MAX_ACTIVE_ENEMIES 5
+#define MAX_EXPLOSIONS 25
 
 
 struct PlayerInput {
@@ -61,6 +62,21 @@ enum class EnemyMovementType {
 	NONE
 };
 
+struct Explosion {
+	int num_anim;
+	SDL_Rect rect;
+	Explosion(SDL_Rect rect) {
+		this->rect.x = rect.x;
+		this->rect.y = rect.y;
+		this->rect.w = rect.w;
+		this->rect.h = rect.h;
+		num_anim = 0;
+	}
+	bool Update(SDL_Renderer* renderer);
+};
+
+Explosion *active_explosions[MAX_EXPLOSIONS];
+
 struct Enemy {
 	SDL_Rect enemy_rect;
 	int speed;
@@ -90,6 +106,7 @@ void CheckCollisionBulletEnemy();
 void MoveEnemies(SDL_Renderer* renderer);
 void CheckPlayerCollision();
 void Spawn(SDL_Renderer* renderer);
+void BlitAnims(SDL_Renderer* renderer);
 
 int lives = 3;
 
@@ -106,6 +123,11 @@ SDL_Texture* enemy_2 = nullptr;
 
 SDL_Texture* laser_player1 = nullptr;
 SDL_Texture* laser_enemy = nullptr;
+
+SDL_Texture* ex1 = nullptr;
+SDL_Texture* ex2 = nullptr;
+SDL_Texture* ex3 = nullptr;
+SDL_Texture* ex4 = nullptr;
 
 SDL_Texture* red_Square = nullptr;
 
@@ -168,11 +190,28 @@ int main(int argc, char* argv[]) {
 	laser_enemy = SDL_CreateTextureFromSurface(renderer, le1);
 	SDL_FreeSurface(le1);
 
+	//explosions
+	SDL_Surface* exp1 = IMG_Load("explosion/ex1.png");
+	ex1 = SDL_CreateTextureFromSurface(renderer, exp1);
+	SDL_FreeSurface(exp1);
+
+	SDL_Surface* exp2 = IMG_Load("explosion/ex2.png");
+	ex2 = SDL_CreateTextureFromSurface(renderer, exp2);
+	SDL_FreeSurface(exp2);
+
+	SDL_Surface* exp3 = IMG_Load("explosion/ex3.png");
+	ex3 = SDL_CreateTextureFromSurface(renderer, exp3);
+	SDL_FreeSurface(exp3);
+
+	SDL_Surface* exp4 = IMG_Load("explosion/ex4.png");
+	ex4 = SDL_CreateTextureFromSurface(renderer, exp4);
+	SDL_FreeSurface(exp4);
 
 	while (loop) {
 
 		if (game_on) {
 			SDL_RenderCopy(renderer, background_texture2, NULL, NULL);
+			BlitAnims(renderer);
 			if (!spawning) {
 				if (!being_immortal)
 					CheckPlayerCollision();
@@ -431,6 +470,12 @@ void CheckPlayerCollision()
 			if (square.x + square.w >= active_enemies[i]->enemy_rect.x && square.y + square.h / 2 >= active_enemies[i]->enemy_rect.y && square.y + square.h / 2 <= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) {
 				player_alive = false;
 				--lives;
+				for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
+					if (active_explosions[z] == nullptr) {
+						active_explosions[z] = new Explosion(square);
+						break;
+					}
+				}
 				Mix_PlayChannel(-1, player_explosion, 0);
 				square.x = -300;
 				square.y = WINDOW_HEIGHT / 2 - square.h / 2;
@@ -446,6 +491,12 @@ void CheckPlayerCollision()
 			if (square.x + square.w >= active_enemy_bullets[i]->bullet.x && square.y + square.h / 2 >= active_enemy_bullets[i]->bullet.y && square.y + square.h / 2 <= active_enemy_bullets[i]->bullet.y + active_enemy_bullets[i]->bullet.h) {
 				player_alive = false;
 				--lives;
+				for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
+					if (active_explosions[z] == nullptr) {
+						active_explosions[z] = new Explosion(square);
+						break;
+					}
+				}
 				Mix_PlayChannel(-1, player_explosion, 0);
 				square.x = -300;
 				square.y = WINDOW_HEIGHT / 2 - square.h / 2;
@@ -490,11 +541,29 @@ void Spawn(SDL_Renderer* renderer)
 				active_enemies[i] = nullptr;
 			}
 		}
+		for (int i = 0; i < MAX_EXPLOSIONS; ++i) {
+			if (active_explosions[i] != nullptr) {
+				delete active_explosions[i];
+				active_explosions[i] = nullptr;
+			}
+		}
 		lives = 3;
 	}
 	else {
 		SDL_RenderCopy(renderer, red_Square, NULL, &square);
 		square.x += square_speed;
+	}
+}
+
+void BlitAnims(SDL_Renderer * renderer)
+{
+	for (int i = 0; i < MAX_EXPLOSIONS; ++i) {
+		if (active_explosions[i] != nullptr) {
+			if (!active_explosions[i]->Update(renderer)) {
+				delete active_explosions[i];
+				active_explosions[i] = nullptr;
+			}
+		}
 	}
 }
 
@@ -511,6 +580,12 @@ void CheckCollisionBulletEnemy()
 						delete active_bullets[i];
 						active_bullets[i] = nullptr;
 						Mix_PlayChannel(-1, enemy_explosion, 0);
+						for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
+							if (active_explosions[z] == nullptr) {
+								active_explosions[z] = new Explosion(active_enemies[j]->enemy_rect);
+								break;
+							}
+						}
 						delete active_enemies[j];
 						active_enemies[j] = nullptr;
 						break;
@@ -564,4 +639,25 @@ void Enemy::CreateEnemyBullet()
 			break;
 		}
 	}
+}
+
+bool Explosion::Update(SDL_Renderer * renderer)
+{
+	bool ret = true;
+
+	if (num_anim <= 30)
+		SDL_RenderCopy(renderer, ex1, NULL, &rect);
+	if (num_anim <= 60 && num_anim > 30)
+		SDL_RenderCopy(renderer, ex2, NULL, &rect);
+	if (num_anim <= 90 && num_anim > 60)
+		SDL_RenderCopy(renderer, ex3, NULL, &rect);
+	if (num_anim <= 120 && num_anim > 90)
+		SDL_RenderCopy(renderer, ex4, NULL, &rect);
+	if (num_anim <= 150 && num_anim > 120)
+		ret = false;
+
+
+	++num_anim;
+
+	return ret;
 }
