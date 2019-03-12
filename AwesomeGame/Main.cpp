@@ -180,6 +180,31 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* background_texture2 = SDL_CreateTextureFromSurface(renderer, b2);
 	SDL_FreeSurface(b2);
 
+	//back 1
+	SDL_Surface* B2 = IMG_Load("background/back1.png");
+	SDL_Texture* back1 = SDL_CreateTextureFromSurface(renderer, B2);
+	SDL_FreeSurface(B2);
+	SDL_Surface* B21 = IMG_Load("background/back1.png");
+	SDL_Texture* back12 = SDL_CreateTextureFromSurface(renderer, B21);
+	SDL_FreeSurface(B21);
+	SDL_Surface* B22 = IMG_Load("background/back1.png");
+	SDL_Texture* back13 = SDL_CreateTextureFromSurface(renderer, B22);
+	SDL_FreeSurface(B22);
+	SDL_Rect back1_rect1{ 0, WINDOW_HEIGHT - 314,550,314 };
+	SDL_Rect back1_rect2{ WINDOW_WIDTH / 2, WINDOW_HEIGHT - 314,550,314 };
+	SDL_Rect back1_rect3{ WINDOW_WIDTH, WINDOW_HEIGHT - 314,550,314 };
+
+	//back 2
+	SDL_Surface* B1 = IMG_Load("background/back2.png");
+	SDL_Texture* back2 = SDL_CreateTextureFromSurface(renderer, B1);
+	SDL_FreeSurface(B1);
+	SDL_Surface* B15 = IMG_Load("background/back2.png");
+	SDL_Texture* back2_1 = SDL_CreateTextureFromSurface(renderer, B15);
+	SDL_FreeSurface(B15);
+
+	SDL_Rect back2_rect1{ 0, 0,WINDOW_WIDTH,WINDOW_HEIGHT };
+	SDL_Rect back2_rect2{ WINDOW_WIDTH, 0 ,WINDOW_WIDTH,WINDOW_HEIGHT };
+
 	//laser player 1
 	SDL_Surface* l1 = IMG_Load("lasers/laser_player1.png");
 	laser_player1 = SDL_CreateTextureFromSurface(renderer, l1);
@@ -210,7 +235,36 @@ int main(int argc, char* argv[]) {
 	while (loop) {
 
 		if (game_on) {
-			SDL_RenderCopy(renderer, background_texture2, NULL, NULL);
+			SDL_RenderCopy(renderer, back2, NULL, &back2_rect1);
+			SDL_RenderCopy(renderer, back2_1, NULL, &back2_rect2);
+			back2_rect1.x -= 1;
+			back2_rect2.x -= 1;
+
+			SDL_RenderCopy(renderer, back1,NULL, &back1_rect1);
+			SDL_RenderCopy(renderer, back12, NULL, &back1_rect2);
+			SDL_RenderCopy(renderer, back13, NULL, &back1_rect3);
+			back1_rect1.x -= 2;
+			back1_rect2.x -= 2;
+			back1_rect3.x -= 2;
+
+			if (back1_rect1.x + back1_rect1.w <= 0) {
+				back1_rect1.x = WINDOW_WIDTH;
+			}
+			if (back1_rect2.x + back1_rect2.w <= 0) {
+				back1_rect2.x = WINDOW_WIDTH;
+			}
+			if (back1_rect3.x + back1_rect3.w <= 0) {
+				back1_rect3.x = WINDOW_WIDTH;
+			}
+			if (back2_rect1.x + back2_rect1.w <= 0) {
+				back2_rect1.x = WINDOW_WIDTH;
+			}
+			if (back2_rect2.x + back2_rect2.w <= 0) {
+				back2_rect2.x = WINDOW_WIDTH;
+			}
+
+
+
 			BlitAnims(renderer);
 			if (!spawning) {
 				if (!being_immortal)
@@ -467,7 +521,9 @@ void CheckPlayerCollision()
 {
 	for (int i = 0; i < MAX_ACTIVE_ENEMIES; ++i) {
 		if (active_enemies[i] != nullptr) {
-			if (square.x + square.w >= active_enemies[i]->enemy_rect.x && square.y + square.h / 2 >= active_enemies[i]->enemy_rect.y && square.y + square.h / 2 <= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) {
+			if ((square.x + square.w >= active_enemies[i]->enemy_rect.x && active_enemies[i]->enemy_rect.y <= square.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h >= square.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h <= square.y + square.h) || 
+				(square.x + square.w >= active_enemies[i]->enemy_rect.x && active_enemies[i]->enemy_rect.y <= square.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h >= square.y + square.h) || 
+				(square.x + square.w >= active_enemies[i]->enemy_rect.x && active_enemies[i]->enemy_rect.y > square.y && square.y + square.h >= active_enemies[i]->enemy_rect.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h >= square.y + square.h)) {
 				player_alive = false;
 				--lives;
 				for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
@@ -484,6 +540,16 @@ void CheckPlayerCollision()
 				delete active_enemies[i];
 				active_enemies[i] = nullptr;
 			}
+			if (square.x + square.w < active_enemies[i]->enemy_rect.x) {
+
+			}
+			if (square.x > active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w) {
+				if ((active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w >= square.x && square.y <= active_enemies[i]->enemy_rect.y && square.y + square.h >= active_enemies[i]->enemy_rect.y && square.y + square.h <= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) ||
+					(active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w >= square.x && square.y <= active_enemies[i]->enemy_rect.y && square.y + square.h >= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) ||
+					(active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w >= square.x && square.y > active_enemies[i]->enemy_rect.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h >= square.y && square.y + square.h >= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h)) {
+
+				}
+ 			}
 		}
 	}
 	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
@@ -655,7 +721,6 @@ bool Explosion::Update(SDL_Renderer * renderer)
 		SDL_RenderCopy(renderer, ex4, NULL, &rect);
 	if (num_anim <= 150 && num_anim > 120)
 		ret = false;
-
 
 	++num_anim;
 
