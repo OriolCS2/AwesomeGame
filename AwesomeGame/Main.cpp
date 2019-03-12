@@ -521,9 +521,7 @@ void CheckPlayerCollision()
 {
 	for (int i = 0; i < MAX_ACTIVE_ENEMIES; ++i) {
 		if (active_enemies[i] != nullptr) {
-			if ((square.x + square.w >= active_enemies[i]->enemy_rect.x && active_enemies[i]->enemy_rect.y <= square.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h >= square.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h <= square.y + square.h) || 
-				(square.x + square.w >= active_enemies[i]->enemy_rect.x && active_enemies[i]->enemy_rect.y <= square.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h >= square.y + square.h) || 
-				(square.x + square.w >= active_enemies[i]->enemy_rect.x && active_enemies[i]->enemy_rect.y > square.y && square.y + square.h >= active_enemies[i]->enemy_rect.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h >= square.y + square.h)) {
+			if (square.x + square.w >= active_enemies[i]->enemy_rect.x && square.y + square.h / 2 >= active_enemies[i]->enemy_rect.y && square.y + square.h / 2 <= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) {
 				player_alive = false;
 				--lives;
 				for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
@@ -540,16 +538,6 @@ void CheckPlayerCollision()
 				delete active_enemies[i];
 				active_enemies[i] = nullptr;
 			}
-			if (square.x + square.w < active_enemies[i]->enemy_rect.x) {
-
-			}
-			if (square.x > active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w) {
-				if ((active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w >= square.x && square.y <= active_enemies[i]->enemy_rect.y && square.y + square.h >= active_enemies[i]->enemy_rect.y && square.y + square.h <= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) ||
-					(active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w >= square.x && square.y <= active_enemies[i]->enemy_rect.y && square.y + square.h >= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) ||
-					(active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w >= square.x && square.y > active_enemies[i]->enemy_rect.y && active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h >= square.y && square.y + square.h >= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h)) {
-
-				}
- 			}
 		}
 	}
 	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
