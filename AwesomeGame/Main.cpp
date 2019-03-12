@@ -93,7 +93,7 @@ void MoveEnemies(SDL_Renderer* renderer);
 
 SDL_Event event;
 
-SDL_Rect square{ 100,100,100,100 };
+SDL_Rect square{ 100,100,120,70 };
 int square_speed = 1;
 
 PlayerInput player_input;
@@ -112,6 +112,11 @@ int main(int argc, char* argv[]) {
 		SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
+
+	SDL_Surface* red_square = IMG_Load("ships/player_ship.png");
+	SDL_Texture* red_Square = SDL_CreateTextureFromSurface(renderer, red_square);
+	SDL_FreeSurface(red_square);
+
 	while (loop) {
 
 		Input();
@@ -119,8 +124,7 @@ int main(int argc, char* argv[]) {
 		MoveBullets(renderer);
 		MoveEnemies(renderer);
 
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		SDL_RenderFillRect(renderer, &square);
+		SDL_RenderCopy(renderer, red_Square, NULL, &square);
 		
 		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 		SDL_RenderPresent(renderer);
