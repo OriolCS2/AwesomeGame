@@ -521,8 +521,8 @@ void CheckPlayerCollision()
 {
 	for (int i = 0; i < MAX_ACTIVE_ENEMIES; ++i) {
 		if (active_enemies[i] != nullptr) {
-			if (square.x + square.w >= active_enemies[i]->enemy_rect.x && square.y + square.h / 2 >= active_enemies[i]->enemy_rect.y && square.y + square.h / 2 <= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) {
-				player_alive = false;
+			if (SDL_HasIntersection(&square,&active_enemies[i]->enemy_rect)) {
+			player_alive = false;
 				--lives;
 				for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
 					if (active_explosions[z] == nullptr) {
@@ -542,7 +542,7 @@ void CheckPlayerCollision()
 	}
 	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
 		if (active_enemy_bullets[i] != nullptr) {
-			if (square.x + square.w >= active_enemy_bullets[i]->bullet.x && square.y + square.h / 2 >= active_enemy_bullets[i]->bullet.y && square.y + square.h / 2 <= active_enemy_bullets[i]->bullet.y + active_enemy_bullets[i]->bullet.h) {
+			if (SDL_HasIntersection(&square,&active_enemy_bullets[i]->bullet)) {
 				player_alive = false;
 				--lives;
 				for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
@@ -627,7 +627,7 @@ void CheckCollisionBulletEnemy()
 		if (active_bullets[i] != nullptr) {
 			for (int j = 0; j < MAX_ACTIVE_ENEMIES; ++j) {
 				if (active_enemies[j] != nullptr) {
-					if (active_enemies[j]->enemy_rect.x <= active_bullets[i]->bullet.x + active_bullets[i]->bullet.w && active_bullets[i]->bullet.y + active_bullets[i]->bullet.h / 2 >= active_enemies[j]->enemy_rect.y && active_bullets[i]->bullet.y + active_bullets[i]->bullet.h / 2 <= active_enemies[j]->enemy_rect.y + active_enemies[j]->enemy_rect.h) {
+					if (SDL_HasIntersection(&active_bullets[i]->bullet, &active_enemies[j]->enemy_rect)) {
 						delete active_bullets[i];
 						active_bullets[i] = nullptr;
 						Mix_PlayChannel(-1, enemy_explosion, 0);
