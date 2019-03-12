@@ -116,6 +116,8 @@ int time_immortal = 0;
 
 Mix_Chunk *player_laser = nullptr;
 Mix_Chunk *enemy_laser = nullptr;
+Mix_Chunk *player_explosion = nullptr;
+Mix_Chunk *enemy_explosion = nullptr;
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -126,6 +128,8 @@ int main(int argc, char* argv[]) {
 	
 	player_laser = Mix_LoadWAV("fx/player_laser.wav");
 	enemy_laser = Mix_LoadWAV("fx/aaaaaaaaaaa.wav");
+	player_explosion = Mix_LoadWAV("fx/explosion_player.wav");
+	enemy_explosion = Mix_LoadWAV("fx/explosion_enemy.wav");
 
 	SDL_Window* window = SDL_CreateWindow("Awesome Game", SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
@@ -427,9 +431,11 @@ void CheckPlayerCollision()
 			if (square.x + square.w >= active_enemies[i]->enemy_rect.x && square.y + square.h / 2 >= active_enemies[i]->enemy_rect.y && square.y + square.h / 2 <= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) {
 				player_alive = false;
 				--lives;
+				Mix_PlayChannel(-1, player_explosion, 0);
 				square.x = -300;
 				square.y = WINDOW_HEIGHT / 2 - square.h / 2;
 				spawning = true;
+				Mix_PlayChannel(-1, enemy_explosion, 0);
 				delete active_enemies[i];
 				active_enemies[i] = nullptr;
 			}
@@ -440,6 +446,7 @@ void CheckPlayerCollision()
 			if (square.x + square.w >= active_enemy_bullets[i]->bullet.x && square.y + square.h / 2 >= active_enemy_bullets[i]->bullet.y && square.y + square.h / 2 <= active_enemy_bullets[i]->bullet.y + active_enemy_bullets[i]->bullet.h) {
 				player_alive = false;
 				--lives;
+				Mix_PlayChannel(-1, player_explosion, 0);
 				square.x = -300;
 				square.y = WINDOW_HEIGHT / 2 - square.h / 2;
 				spawning = true;
@@ -454,6 +461,10 @@ void Spawn(SDL_Renderer* renderer)
 {
 	
 	if (square.x >= 50) {
+		player_input.pressing_A = false;
+		player_input.pressing_D = false;
+		player_input.pressing_S = false;
+		player_input.pressing_W = false;
 		spawning = false;
 		player_alive = true;
 		being_immortal = true;
@@ -499,6 +510,7 @@ void CheckCollisionBulletEnemy()
 					if (active_enemies[j]->enemy_rect.x <= active_bullets[i]->bullet.x + active_bullets[i]->bullet.w && active_bullets[i]->bullet.y + active_bullets[i]->bullet.h / 2 >= active_enemies[j]->enemy_rect.y && active_bullets[i]->bullet.y + active_bullets[i]->bullet.h / 2 <= active_enemies[j]->enemy_rect.y + active_enemies[j]->enemy_rect.h) {
 						delete active_bullets[i];
 						active_bullets[i] = nullptr;
+						Mix_PlayChannel(-1, enemy_explosion, 0);
 						delete active_enemies[j];
 						active_enemies[j] = nullptr;
 						break;
