@@ -121,7 +121,10 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* e1 = IMG_Load("ships/enemy_1.png");
 	enemy_1 = SDL_CreateTextureFromSurface(renderer, e1);
 	SDL_FreeSurface(e1);
-
+	//background
+	SDL_Surface* b = IMG_Load("background/simpsons_background.png");
+	SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, b);
+	SDL_FreeSurface(b);
 
 	while (loop) {
 
@@ -130,12 +133,13 @@ int main(int argc, char* argv[]) {
 		MoveBullets(renderer);
 		MoveEnemies(renderer);
 
+		SDL_RenderCopy(renderer, background_texture, NULL, NULL);
+
 		SDL_RenderCopy(renderer, red_Square, NULL, &square);
-	
-		
+
 		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 		SDL_RenderPresent(renderer);
-	
+		
 		SDL_Delay(1);
 		SDL_RenderClear(renderer);
 	}
