@@ -32,9 +32,9 @@ struct Bullet {
 	Bullet() {
 		bullet.x = 0;
 		bullet.y = 0;
-		bullet.w = 30;
-		bullet.h = 20;
-		speed = 1;
+		bullet.w = 60;
+		bullet.h = 30;
+		speed = 3;
 	}
 };
 
@@ -102,6 +102,8 @@ bool loop = true;
 SDL_Texture* enemy_1 = nullptr;
 SDL_Texture* enemy_2 = nullptr;
 
+SDL_Texture* laser_player1 = nullptr;
+
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	Mix_Init(SDL_INIT_AUDIO);
@@ -131,6 +133,11 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* b = IMG_Load("background/simpsons_background.png");
 	SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, b);
 	SDL_FreeSurface(b);
+
+	//laser player 1
+	SDL_Surface* l1 = IMG_Load("lasers/laser_player1.png");
+	laser_player1 = SDL_CreateTextureFromSurface(renderer, l1);
+	SDL_FreeSurface(l1);
 
 
 	while (loop) {
@@ -251,8 +258,9 @@ void MoveBullets(SDL_Renderer* renderer)
 			}
 			else {
 				active_bullets[i]->bullet.x += active_bullets[i]->speed;
-				SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-				SDL_RenderFillRect(renderer, &active_bullets[i]->bullet);
+				SDL_RenderCopy(renderer, laser_player1, NULL, &active_bullets[i]->bullet);
+				//SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+				//SDL_RenderFillRect(renderer, &active_bullets[i]->bullet);
 			}
 		}
 	}
