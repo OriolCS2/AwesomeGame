@@ -42,15 +42,13 @@ Bullet* active_bullets[MAX_ACTIVE_BULLETS];
 
 struct EnemyBullet {
 	int speed;
-	int speed_y;
 	SDL_Rect bullet;
 	EnemyBullet() {
 		bullet.x = 0;
 		bullet.y = 0;
 		bullet.w = 30;
 		bullet.h = 20;
-		speed = 1;
-		speed_y = 0;
+		speed = 2;
 	}
 
 };
@@ -89,6 +87,7 @@ void CreateBullet();
 void MoveBullets(SDL_Renderer* renderer);
 void CheckCollisionBulletEnemy();
 void MoveEnemies(SDL_Renderer* renderer);
+void CheckPlayerCollision();
 
 
 SDL_Event event;
@@ -104,6 +103,8 @@ SDL_Texture* enemy_2 = nullptr;
 
 SDL_Texture* laser_player1 = nullptr;
 SDL_Texture* laser_enemy = nullptr;
+
+bool player_alive = true;
 
 
 int main(int argc, char* argv[]) {
@@ -150,15 +151,17 @@ int main(int argc, char* argv[]) {
 	while (loop) {
 
 		SDL_RenderCopy(renderer, background_texture, NULL, NULL);
+		CheckPlayerCollision();
 
 		Input();
+
 		CheckCollisionBulletEnemy();
 		MoveBullets(renderer);
 		MoveEnemies(renderer);
 
 		
-
-		SDL_RenderCopy(renderer, red_Square, NULL, &square);
+		if (player_alive)
+			SDL_RenderCopy(renderer, red_Square, NULL, &square);
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 		SDL_RenderPresent(renderer);
@@ -196,7 +199,8 @@ void Input()
 				player_input.pressing_W = true;
 				break;
 			case SDL_SCANCODE_SPACE:
-				CreateBullet();
+				if (player_alive)
+					CreateBullet();
 				break;
 			case SDL_SCANCODE_ESCAPE:
 				loop = false;
@@ -228,18 +232,21 @@ void Input()
 		}
 	}
 
-	if (player_input.pressing_A && square.x >= 0) {
-		square.x -= square_speed;
+	if (player_alive) {
+		if (player_input.pressing_A && square.x >= 0) {
+			square.x -= square_speed;
+		}
+		if (player_input.pressing_D && square.x <= WINDOW_WIDTH - square.w) {
+			square.x += square_speed;
+		}
+		if (player_input.pressing_W && square.y >= 0) {
+			square.y -= square_speed;
+		}
+		if (player_input.pressing_S && square.y <= WINDOW_HEIGHT - square.h) {
+			square.y += square_speed;
+		}
 	}
-	if (player_input.pressing_D && square.x <= WINDOW_WIDTH - square.w) {
-		square.x += square_speed;
-	}
-	if (player_input.pressing_W && square.y >= 0) {
-		square.y -= square_speed;
-	}
-	if (player_input.pressing_S && square.y <= WINDOW_HEIGHT - square.h) {
-		square.y += square_speed;
-	}
+	
 	
 }
 
@@ -278,8 +285,7 @@ void MoveBullets(SDL_Renderer* renderer)
 				active_enemy_bullets[i] = nullptr;
 			}
 			else {
-				active_enemy_bullets[i]->bullet.x += active_enemy_bullets[i]->speed;
-				active_enemy_bullets[i]->bullet.y += active_enemy_bullets[i]->speed_y;
+				active_enemy_bullets[i]->bullet.x -= active_enemy_bullets[i]->speed;
 				SDL_RenderCopy(renderer, laser_enemy, NULL, &active_enemy_bullets[i]->bullet);
 				//SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
 				//SDL_RenderFillRect(renderer, &active_enemy_bullets[i]->bullet);
@@ -366,6 +372,28 @@ void MoveEnemies(SDL_Renderer * renderer)
 	}
 }
 
+void CheckPlayerCollision()
+{
+	for (int i = 0; i < MAX_ACTIVE_ENEMIES; ++i) {
+		if (active_enemies[i] != nullptr) {
+			if (square.x + square.w >= active_enemies[i]->enemy_rect.x && square.y + square.h / 2 >= active_enemies[i]->enemy_rect.y && square.y + square.h / 2 <= active_enemies[i]->enemy_rect.y + active_enemies[i]->enemy_rect.h) {
+				player_alive = false;
+				delete active_enemies[i];
+				active_enemies[i] = nullptr;
+			}
+		}
+	}
+	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
+		if (active_enemy_bullets[i] != nullptr) {
+			if (square.x + square.w >= active_enemy_bullets[i]->bullet.x && square.y + square.h / 2 >= active_enemy_bullets[i]->bullet.y && square.y + square.h / 2 <= active_enemy_bullets[i]->bullet.y + active_enemy_bullets[i]->bullet.h) {
+				player_alive = false;
+				delete active_enemy_bullets[i];
+				active_enemy_bullets[i] = nullptr;
+			}
+		}
+	}
+}
+
 
 
 
@@ -427,13 +455,6 @@ void Enemy::CreateEnemyBullet()
 			active_enemy_bullets[i] = new EnemyBullet();
 			active_enemy_bullets[i]->bullet.x = enemy_rect.x;
 			active_enemy_bullets[i]->bullet.y = enemy_rect.y + square.h / 2 - active_enemy_bullets[i]->bullet.h / 2;
-			float x = square.x - enemy_rect.x;
-			float y = square.y - enemy_rect.y;
-			float m = sqrt((x*x) + (y*y));
-			x = x / m;
-			y = y / m;
-			active_enemy_bullets[i]->speed = x * 2.3f;
-			active_enemy_bullets[i]->speed_y = y * 2.3f;
 			break;
 		}
 	}
