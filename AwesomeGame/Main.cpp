@@ -127,19 +127,28 @@ int main(int argc, char* argv[]) {
 	enemy_2 = SDL_CreateTextureFromSurface(renderer, e2);
 	SDL_FreeSurface(e2);
 
+	//background
+	SDL_Surface* b = IMG_Load("background/simpsons_background.png");
+	SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, b);
+	SDL_FreeSurface(b);
+
+
 	while (loop) {
+
+		SDL_RenderCopy(renderer, background_texture, NULL, NULL);
 
 		Input();
 		CheckCollisionBulletEnemy();
 		MoveBullets(renderer);
 		MoveEnemies(renderer);
 
-		SDL_RenderCopy(renderer, red_Square, NULL, &square);
-	
 		
+
+		SDL_RenderCopy(renderer, red_Square, NULL, &square);
+
 		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 		SDL_RenderPresent(renderer);
-	
+		
 		SDL_Delay(1);
 		SDL_RenderClear(renderer);
 	}
