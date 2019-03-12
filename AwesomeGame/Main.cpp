@@ -70,8 +70,8 @@ struct Enemy {
 	Enemy(int x, int y, EnemyMovementType type) {
 		enemy_rect.x = x;
 		enemy_rect.y = y;
-		enemy_rect.w = 80;
-		enemy_rect.h = 40;
+		enemy_rect.w = 110;
+		enemy_rect.h = 60;
 		speed = 1;
 		this->type = type;
 	}
@@ -100,6 +100,7 @@ PlayerInput player_input;
 bool loop = true;
 
 SDL_Texture* enemy_1 = nullptr;
+SDL_Texture* enemy_2 = nullptr;
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -121,7 +122,10 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* e1 = IMG_Load("ships/enemy_1.png");
 	enemy_1 = SDL_CreateTextureFromSurface(renderer, e1);
 	SDL_FreeSurface(e1);
-
+	// enemy 2
+	SDL_Surface* e2 = IMG_Load("ships/enemy_2.png");
+	enemy_2 = SDL_CreateTextureFromSurface(renderer, e2);
+	SDL_FreeSurface(e2);
 
 	while (loop) {
 
@@ -273,9 +277,15 @@ void MoveEnemies(SDL_Renderer * renderer)
 				}
 				else {
 					if (active_enemies[i]->Update()) {
-						SDL_RenderCopy(renderer, enemy_1, NULL, &active_enemies[i]->enemy_rect);
-						//SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-						//SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
+						switch(active_enemies[i]->type) {
+						case EnemyMovementType::STRAIGHT_ON:
+							SDL_RenderCopy(renderer, enemy_1, NULL, &active_enemies[i]->enemy_rect);
+							break;
+						case EnemyMovementType::STAY_SHOT:
+							SDL_RenderCopy(renderer, enemy_2, NULL, &active_enemies[i]->enemy_rect);
+							break;
+						}
+						
 					}
 					else {
 						delete active_enemies[i];
