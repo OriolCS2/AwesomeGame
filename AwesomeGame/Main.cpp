@@ -21,7 +21,7 @@
 #define MAX_ENEMY_BULLETS 5
 #define MAX_ACTIVE_ENEMIES 5
 #define MAX_EXPLOSIONS 25
-#define MAX_ACTIVE_MINIONS 5
+#define MAX_SPAWNABLE_MINIONS 5
 
 struct PlayerInput {
 	bool pressing_W = false;
@@ -102,20 +102,21 @@ struct Boss {
 	SDL_Rect boss_rect;
 	int speed;
 	Boss() {
-		boss_rect.x = WINDOW_WIDTH;
-		boss_rect.y = WINDOW_HEIGHT/2;
-		boss_rect.w = 200;
-		boss_rect.h = 120;
+		boss_rect.x = 3000;
+		boss_rect.y = 225;
+		boss_rect.w = 500;
+		boss_rect.h = 300;
 		speed = 1;
 	}
 };
 
-struct minions {
+struct minion {
 	SDL_Rect minions_rect;
 	int speed;
-	minions() {
-		//minions_rect.x = boss->boss_rect.x;
-		//minions_rect.y = boss->boss_rect.y;
+	int sign = rand() % 2;
+	minion() {
+		minions_rect.x = boss.boss_rect.x;
+		minions_rect.y = boss.boss_rect.y;
 		minions_rect.w = 50;
 		minions_rect.h = 50;
 		speed = 2;
@@ -123,8 +124,8 @@ struct minions {
 };
 
 Enemy* active_enemies[MAX_ACTIVE_ENEMIES];
-Boss* boss;
-minions* active_minion[MAX_ACTIVE_MINIONS];
+Boss boss;
+minion* active_minion[MAX_SPAWNABLE_MINIONS];
 
 bool game_on = false;
 
@@ -137,7 +138,9 @@ void CheckPlayerCollision();
 void Spawn(SDL_Renderer* renderer);
 void BlitAnims(SDL_Renderer* renderer);
 void SpawnBoss(SDL_Renderer* renderer);
+void moveBoss(SDL_Renderer*);
 void RenderScore(SDL_Renderer* renderer);
+void signDecider(minion* minion);
 
 int lives = 3;
 int score = 0;
@@ -159,6 +162,7 @@ bool loop = true;
 
 SDL_Texture* enemy_1 = nullptr;
 SDL_Texture* enemy_2 = nullptr;
+SDL_Texture* boss_text = nullptr;
 
 SDL_Texture* laser_player1 = nullptr;
 SDL_Texture* laser_enemy = nullptr;
@@ -222,7 +226,10 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* e2 = IMG_Load("ships/enemy_2.png");
 	enemy_2 = SDL_CreateTextureFromSurface(renderer, e2);
 	SDL_FreeSurface(e2);
-
+	// boss
+	SDL_Surface* bss = IMG_Load("ships/death_star.png");
+	boss_text = SDL_CreateTextureFromSurface(renderer, bss);
+	SDL_FreeSurface(bss);
 	//background 1
 	SDL_Surface* b = IMG_Load("background/simpsons_background.png");
 	SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, b);
@@ -374,7 +381,11 @@ int main(int argc, char* argv[]) {
 				back2_rect2.x = WINDOW_WIDTH;
 			}
 			++cont;
-
+			
+			if (lives==0)
+			{
+				score = 0;
+			}
 
 			BlitAnims(renderer);
 			if (!spawning) {
@@ -397,13 +408,20 @@ int main(int argc, char* argv[]) {
 				SDL_RenderCopy(renderer, red_Square, NULL, &square);
 			
 			
-			if ((enemies_destroyed >= 50) && (!boss_spawned)) {
+			//if ((enemies_destroyed >= 50) && (!boss_spawned)) 
+			if((score>10)&&(boss_spawned==false))
+			{
 				SpawnBoss(renderer);
 				boss_spawned = true;
 			}
-			RenderScore(renderer);
 
-			
+			if (boss_spawned==true)
+			{
+				moveBoss(renderer);
+
+			}
+
+			RenderScore(renderer);			
 			
 			SDL_RenderPresent(renderer);
 			SDL_Delay(1);
@@ -809,17 +827,50 @@ bool Explosion::Update(SDL_Renderer * renderer)
 }
 
 void SpawnBoss(SDL_Renderer* renderer) {
-	/*if (boss->boss_rect.x>550)
+	
+	boss.boss_rect.x = 1200;
+
+	for (int i = 0; i < 10; i++)
 	{
-		boss = new Boss();
-		boss->boss_rect.x -= square_speed;
+		active_minion[i] = new minion(); //creates a minion
+		if (active_minion[i]->sign== 0)
+		{
+			active_minion[i]->sign = 1; //decides its sign
+		}
+		else
+		{
+			active_minion[i]->sign = -1;
+		}
 	}
-	for (int i = 0; i < MAX_ACTIVE_MINIONS; i++)
+	
+}
+
+void moveBoss(SDL_Renderer* renderer) {
+	if (boss.boss_rect.x>600)
 	{
-		active_minion[i] = new minions();
+		boss.boss_rect.x -= boss.speed;
 	}
-	minionsNeeded = false;
-	*/
+	SDL_RenderCopy(renderer, boss_text, NULL, &boss.boss_rect);
+}
+
+void moveMinions() {
+	int sign;
+	
+	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
+	{
+		if (active_minion[i]->minions_rect.x > 600)
+		{
+			active_minion[i]->minions_rect.x -= square_speed;
+		}
+		if (active_minion[i]->minions_rect.y>0)
+		{
+			active_minion[i]->minions_rect.y = square_speed*sign; //depending on the sign it will go up or down
+		}
+		else if ((active_minion[i]->minions_rect.y == 0)||(active_minion[i]->minions_rect.y==700))
+		{
+			active_minion[i]->sign = active_minion[i]->sign*-1;
+		}
+	}
 }
 
 void RenderScore(SDL_Renderer * renderer)
