@@ -115,8 +115,8 @@ struct minion {
 	int speed;
 	int sign = rand() % 2;
 	minion() {
-		minions_rect.x = boss.boss_rect.x;
-		minions_rect.y = boss.boss_rect.y;
+		minions_rect.x = 2000;
+		minions_rect.y = 2000;
 		minions_rect.w = 50;
 		minions_rect.h = 50;
 		speed = 2;
@@ -833,6 +833,8 @@ void SpawnBoss(SDL_Renderer* renderer) {
 	for (int i = 0; i < 10; i++)
 	{
 		active_minion[i] = new minion(); //creates a minion
+		active_minion[i]->minions_rect.x = boss.boss_rect.x;
+		active_minion[i]->minions_rect.y = boss.boss_rect.y;
 		if (active_minion[i]->sign== 0)
 		{
 			active_minion[i]->sign = 1; //decides its sign
@@ -854,7 +856,7 @@ void moveBoss(SDL_Renderer* renderer) {
 }
 
 void moveMinions() {
-	int sign;
+	int sign=0;
 	
 	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
 	{
@@ -864,6 +866,7 @@ void moveMinions() {
 		}
 		if (active_minion[i]->minions_rect.y>0)
 		{
+			sign = active_minion[i]->sign;
 			active_minion[i]->minions_rect.y = square_speed*sign; //depending on the sign it will go up or down
 		}
 		else if ((active_minion[i]->minions_rect.y == 0)||(active_minion[i]->minions_rect.y==700))
