@@ -94,7 +94,33 @@ struct Enemy {
 	void CreateEnemyBullet();
 };
 
+struct Boss {
+	SDL_Rect boss_rect;
+	int speed;
+	Boss() {
+		boss_rect.x = WINDOW_WIDTH;
+		boss_rect.y = WINDOW_HEIGHT/2;
+		boss_rect.w = 200;
+		boss_rect.h = 120;
+		speed = 1;
+	}
+};
+
+struct minions {
+	SDL_Rect minions_rect;
+	int speed;
+	minions() {
+		minions_rect.x = boss->boss_rect.x;
+		minions_rect.y = boss->boss_rect.y;
+		minions_rect.w = 50;
+		minions_rect.h = 50;
+		speed = 2;
+	}
+};
+
 Enemy* active_enemies[MAX_ACTIVE_ENEMIES];
+Boss* boss;
+minions* active_minion[5];
 
 bool game_on = false;
 
@@ -109,6 +135,9 @@ void BlitAnims(SDL_Renderer* renderer);
 
 int lives = 3;
 int score = 0;
+int boss_lives = 30;
+int enemies_destroyed;
+bool minionsNeeded = true;
 
 SDL_Event event;
 
@@ -135,6 +164,7 @@ bool player_alive = true;
 bool spawning = true;
 bool being_immortal = true;
 int time_immortal = 0;
+bool boss_spawned = false;
 
 Mix_Chunk *player_laser = nullptr;
 Mix_Chunk *enemy_laser = nullptr;
@@ -290,6 +320,11 @@ int main(int argc, char* argv[]) {
 			SDL_RenderPresent(renderer);
 			SDL_Delay(1);
 
+			if ((enemies_destroyed >= 50)&&(!boss_spawned)){
+				SpawnBoss(renderer);
+				boss_spawned = true;
+			}
+
 		}
 		else {
 
@@ -444,10 +479,7 @@ void MoveBullets(SDL_Renderer* renderer)
 
 void MoveEnemies(SDL_Renderer * renderer)
 {
-	//int kind = 0,time=0;
 	for (int i = 0; i < MAX_ACTIVE_ENEMIES; ++i) {
-		//kind= rand() % 2;
-		//if (kind==0)
 		{
 			if (active_enemies[i] != nullptr) { //if the enemy exists
 				if (active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w <= 0) { //if the enemy is out of the screen 
@@ -488,35 +520,6 @@ void MoveEnemies(SDL_Renderer * renderer)
 				
 			}
 		}
-		//else if(kind==1)
-		/*{
-			if (active_enemies[i] != nullptr) { //if the enemy exists
-				if (active_enemies[i]->enemy_rect.x + active_enemies[i]->enemy_rect.w <= 0) { //if the enemy is out of the screen 
-					active_enemies[i]->enemy_rect.y = rand() % 700;
-					active_enemies[i]->enemy_rect.x = 1100;
-					delete active_bullets[i];
-					active_bullets[i] = nullptr;
-				}
-				else {
-					active_enemies[i]->enemy_rect.x -= active_enemies[i]->speed;
-					if (active_enemies[i]->enemy_rect.y<=700) //if the enemy is 
-					{
-						active_enemies[i]->enemy_rect.y -= 2*(active_enemies[i]->speed);
-					}
-					else
-					{
-						active_enemies[i]->enemy_rect.y -= active_enemies[i]->speed;
-					}
-					SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-					SDL_RenderFillRect(renderer, &active_enemies[i]->enemy_rect);
-				}
-			}
-			else //if it doesn't exist create one in a random place
-			{
-				active_enemies[i] = new Enemy(rand() % 700, 1100);
-			}
-		}*/
-
 	}
 }
 
@@ -540,6 +543,7 @@ void CheckPlayerCollision()
 				Mix_PlayChannel(-1, enemy_explosion, 0);
 				delete active_enemies[i];
 				active_enemies[i] = nullptr;
+				enemies_destroyed++;
 			}
 		}
 	}
@@ -642,6 +646,7 @@ void CheckCollisionBulletEnemy()
 						}
 						delete active_enemies[j];
 						active_enemies[j] = nullptr;
+						enemies_destroyed++;
 						score++;
 						break;
 					}
@@ -715,3 +720,17 @@ bool Explosion::Update(SDL_Renderer * renderer)
 
 	return ret;
 }
+
+void SpawnBoss(SDL_Renderer* renderer) {
+	if (boss->boss_rect.x>550)
+	{
+		boss = new Boss();
+		boss->boss_rect.x -= square_speed;
+	}
+	for (int i = 0; i < 5; i++)
+	{
+		active_minion[i] = new minions();
+	}
+	minionsNeeded = false;
+}
+
