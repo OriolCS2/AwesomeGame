@@ -818,8 +818,15 @@ void RenderScore(SDL_Renderer * renderer)
 		SDL_DestroyTexture(tex_score);
 		tex_score = SDL_CreateTextureFromSurface(renderer, score_to_print);
 	}
+	SDL_Rect rect_tex{ 460, 20,400,70 };;
+	std::string left = "POINTS LEFT TILL BOSS: " + IntToString(1000 - score);
+	SDL_Surface* surf = TTF_RenderText_Solid(font, left.c_str(), { 255,0,0 });
+	SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+	SDL_RenderCopy(renderer, tex, NULL, &rect_tex);
+	SDL_FreeSurface(surf);
+	SDL_DestroyTexture(tex);
 	
-	SDL_Rect rect{ 900, 20,170,70 };;
+	SDL_Rect rect{ 900, 20,170,70 };
 	SDL_RenderCopy(renderer, tex_score, NULL, &rect);
 	
 }
