@@ -85,7 +85,7 @@ struct Enemy {
 		enemy_rect.y = y;
 		enemy_rect.w = 110;
 		enemy_rect.h = 60;
-		speed = 1;
+		speed = 2;
 		this->type = type;
 	}
 	int time = 0;
@@ -231,21 +231,24 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* exp4 = IMG_Load("explosion/ex4.png");
 	ex4 = SDL_CreateTextureFromSurface(renderer, exp4);
 	SDL_FreeSurface(exp4);
-
+	int cont = 2;
 	while (loop) {
 
 		if (game_on) {
 			SDL_RenderCopy(renderer, back2, NULL, &back2_rect1);
 			SDL_RenderCopy(renderer, back2_1, NULL, &back2_rect2);
-			back2_rect1.x -= 1;
-			back2_rect2.x -= 1;
+
 
 			SDL_RenderCopy(renderer, back1,NULL, &back1_rect1);
 			SDL_RenderCopy(renderer, back12, NULL, &back1_rect2);
 			SDL_RenderCopy(renderer, back13, NULL, &back1_rect3);
-			back1_rect1.x -= 2;
-			back1_rect2.x -= 2;
-			back1_rect3.x -= 2;
+			if (cont % 2 == 0) {
+				back2_rect1.x -= 1;
+				back2_rect2.x -= 1;
+				back1_rect1.x -= 2;
+				back1_rect2.x -= 2;
+				back1_rect3.x -= 2;
+			}
 
 			if (back1_rect1.x + back1_rect1.w <= 0) {
 				back1_rect1.x = WINDOW_WIDTH;
@@ -262,7 +265,7 @@ int main(int argc, char* argv[]) {
 			if (back2_rect2.x + back2_rect2.w <= 0) {
 				back2_rect2.x = WINDOW_WIDTH;
 			}
-
+			++cont;
 
 
 			BlitAnims(renderer);
