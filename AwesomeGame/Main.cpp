@@ -99,15 +99,8 @@ struct Enemy {
 };
 
 struct Boss {
-	SDL_Rect boss_rect;
-	int speed;
-	Boss() {
-		boss_rect.x = 3000;
-		boss_rect.y = 225;
-		boss_rect.w = 500;
-		boss_rect.h = 300;
-		speed = 1;
-	}
+	SDL_Rect boss_rect{3000,225,500,300};
+	int speed = 1;
 };
 Boss boss;
 struct minion {
@@ -352,13 +345,13 @@ int main(int argc, char* argv[]) {
 			//if ((enemies_destroyed >= 50) && (!boss_spawned)) 
 			if((score>10)&&(boss_spawned==false))
 			{
-				//SpawnBoss(renderer);
+				SpawnBoss(renderer);
 				boss_spawned = true;
 			}
 
 			if (boss_spawned==true)
 			{
-			//	moveBoss(renderer);
+				moveBoss(renderer);
 
 			}
 
@@ -772,7 +765,7 @@ void SpawnBoss(SDL_Renderer* renderer) {
 	
 	boss.boss_rect.x = 1200;
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
 	{
 		active_minion[i] = new minion(); //creates a minion
 		if (active_minion[i]->sign== 0)
