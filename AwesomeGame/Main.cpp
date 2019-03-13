@@ -18,6 +18,7 @@
 #define MAX_ENEMY_BULLETS 5
 #define MAX_ACTIVE_ENEMIES 5
 #define MAX_EXPLOSIONS 25
+#define MAX_ACTIVE_MINIONS 5
 
 struct PlayerInput {
 	bool pressing_W = false;
@@ -120,7 +121,7 @@ struct minions {
 
 Enemy* active_enemies[MAX_ACTIVE_ENEMIES];
 Boss* boss;
-minions* active_minion[5];
+minions* active_minion[MAX_ACTIVE_MINIONS];
 
 bool game_on = false;
 
@@ -132,11 +133,12 @@ void MoveEnemies(SDL_Renderer* renderer);
 void CheckPlayerCollision();
 void Spawn(SDL_Renderer* renderer);
 void BlitAnims(SDL_Renderer* renderer);
+void SpawnBoss(SDL_Renderer* renderer);
 
 int lives = 3;
 int score = 0;
 int boss_lives = 30;
-int enemies_destroyed;
+int enemies_destroyed = 0;
 bool minionsNeeded = true;
 
 SDL_Event event;
@@ -584,6 +586,10 @@ void Spawn(SDL_Renderer* renderer)
 	}
 	else if (lives == 0) {
 		game_on = false;
+		enemies_destroyed = 0;
+		boss_spawned = false;
+		boss_lives = 30;
+		minionsNeeded = true;
 		for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
 			if (active_bullets[i] != nullptr) {
 				delete active_bullets[i];
@@ -727,7 +733,7 @@ void SpawnBoss(SDL_Renderer* renderer) {
 		boss = new Boss();
 		boss->boss_rect.x -= square_speed;
 	}
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < MAX_ACTIVE_MINIONS; i++)
 	{
 		active_minion[i] = new minions();
 	}
