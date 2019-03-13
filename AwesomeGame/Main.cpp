@@ -1,16 +1,19 @@
 #include <iostream>
 #include <time.h>
 #include <ctime>
+#include <sstream> 
 
 #include "SDL/include/SDL.h"
 #include "SDL_Mixer/include/SDL_mixer.h"
 #include "SDL_image/include/SDL_image.h"
+#include "SDL_ttf/include/SDL_ttf.h"
 
 
 #pragma comment (lib, "SDL/libx86/SDL2.lib")
 #pragma comment (lib, "SDL/libx86/SDL2main.lib")
 #pragma comment (lib, "SDL_Mixer/libx86/SDL2_mixer.lib")
 #pragma comment (lib, "SDL_image/libx86/SDL2_image.lib")
+#pragma comment (lib, "SDL_ttf/libx86/SDL2_ttf.lib")
 
 #define WINDOW_WIDTH 1100
 #define WINDOW_HEIGHT 700
@@ -111,8 +114,8 @@ struct minions {
 	SDL_Rect minions_rect;
 	int speed;
 	minions() {
-		minions_rect.x = boss->boss_rect.x;
-		minions_rect.y = boss->boss_rect.y;
+		//minions_rect.x = boss->boss_rect.x;
+		//minions_rect.y = boss->boss_rect.y;
 		minions_rect.w = 50;
 		minions_rect.h = 50;
 		speed = 2;
@@ -134,9 +137,14 @@ void CheckPlayerCollision();
 void Spawn(SDL_Renderer* renderer);
 void BlitAnims(SDL_Renderer* renderer);
 void SpawnBoss(SDL_Renderer* renderer);
+void RenderScore(SDL_Renderer* renderer);
 
 int lives = 3;
 int score = 0;
+int old_score = -1;
+SDL_Surface* score_to_print = nullptr;
+SDL_Color color{ 255,0,0 };
+TTF_Font* font = nullptr;
 int boss_lives = 30;
 int enemies_destroyed = 0;
 bool minionsNeeded = true;
@@ -160,6 +168,17 @@ SDL_Texture* ex2 = nullptr;
 SDL_Texture* ex3 = nullptr;
 SDL_Texture* ex4 = nullptr;
 
+SDL_Texture* num0[4];
+SDL_Texture* num1 = nullptr;
+SDL_Texture* num2 = nullptr;
+SDL_Texture* num3 = nullptr;
+SDL_Texture* num4 = nullptr;
+SDL_Texture* num5 = nullptr;
+SDL_Texture* num6 = nullptr;
+SDL_Texture* num7 = nullptr;
+SDL_Texture* num8 = nullptr;
+SDL_Texture* num9 = nullptr;
+
 SDL_Texture* red_Square = nullptr;
 
 bool player_alive = true;
@@ -172,14 +191,16 @@ Mix_Chunk *player_laser = nullptr;
 Mix_Chunk *enemy_laser = nullptr;
 Mix_Chunk *player_explosion = nullptr;
 Mix_Chunk *enemy_explosion = nullptr;
+std::string IntToString(int number);
+SDL_Texture* tex_score = nullptr;
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	Mix_Init(SDL_INIT_AUDIO);
 	IMG_Init(IMG_INIT_PNG);
 	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT, 2, 1000);
-	
-	
+	TTF_Init();
+	font = TTF_OpenFont("UI/Sunday-Afternoon.ttf", 20);
 	player_laser = Mix_LoadWAV("fx/player_laser.wav");
 	enemy_laser = Mix_LoadWAV("fx/aaaaaaaaaaa.wav");
 	player_explosion = Mix_LoadWAV("fx/explosion_player.wav");
@@ -263,6 +284,61 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* exp4 = IMG_Load("explosion/ex4.png");
 	ex4 = SDL_CreateTextureFromSurface(renderer, exp4);
 	SDL_FreeSurface(exp4);
+
+	//numbers Number0 7x10.png
+
+	SDL_Surface* NUM0 = IMG_Load("UI/Number0 7x10.png");
+	num0[0] = SDL_CreateTextureFromSurface(renderer, NUM0);
+	SDL_FreeSurface(NUM0);
+
+	SDL_Surface* NUM00 = IMG_Load("UI/Number0 7x10.png");
+	num0[1] = SDL_CreateTextureFromSurface(renderer, NUM00);
+	SDL_FreeSurface(NUM00);
+
+	SDL_Surface* NUM000 = IMG_Load("UI/Number0 7x10.png");
+	num0[2] = SDL_CreateTextureFromSurface(renderer, NUM000);
+	SDL_FreeSurface(NUM000);
+
+	SDL_Surface* NUM0000 = IMG_Load("UI/Number0 7x10.png");
+	num0[3] = SDL_CreateTextureFromSurface(renderer, NUM0000);
+	SDL_FreeSurface(NUM0000);
+
+	SDL_Surface* NUM1 = IMG_Load("UI/Number1 7x10.png");
+	num1 = SDL_CreateTextureFromSurface(renderer, NUM1);
+	SDL_FreeSurface(NUM1);
+
+	SDL_Surface* NUM2 = IMG_Load("UI/Number2 7x10.png");
+	num2 = SDL_CreateTextureFromSurface(renderer, NUM2);
+	SDL_FreeSurface(NUM2);
+
+	SDL_Surface* NUM3 = IMG_Load("UI/Number3 7x10.png");
+	num3 = SDL_CreateTextureFromSurface(renderer, NUM3);
+	SDL_FreeSurface(NUM3);
+
+	SDL_Surface* NUM4 = IMG_Load("UI/Number4 7x10.png");
+	num4 = SDL_CreateTextureFromSurface(renderer, NUM4);
+	SDL_FreeSurface(NUM4);
+
+	SDL_Surface* NUM5 = IMG_Load("UI/Number5 7x10.png");
+	num5 = SDL_CreateTextureFromSurface(renderer, NUM5);
+	SDL_FreeSurface(NUM5);
+
+	SDL_Surface* NUM6 = IMG_Load("UI/Number6 7x10.png");
+	num6 = SDL_CreateTextureFromSurface(renderer, NUM6);
+	SDL_FreeSurface(NUM6);
+
+	SDL_Surface* NUM7 = IMG_Load("UI/Number7 7x10.png");
+	num7 = SDL_CreateTextureFromSurface(renderer, NUM7);
+	SDL_FreeSurface(NUM7);
+
+	SDL_Surface* NUM8 = IMG_Load("UI/Number8 7x10.png");
+	num8 = SDL_CreateTextureFromSurface(renderer, NUM8);
+	SDL_FreeSurface(NUM8);
+
+	SDL_Surface* NUM9 = IMG_Load("UI/Number9 7x10.png");
+	num9 = SDL_CreateTextureFromSurface(renderer, NUM9);
+	SDL_FreeSurface(NUM9);
+
 	int cont = 2;
 	while (loop) {
 
@@ -319,14 +395,18 @@ int main(int argc, char* argv[]) {
 
 			if (player_alive)
 				SDL_RenderCopy(renderer, red_Square, NULL, &square);
-			SDL_RenderPresent(renderer);
-			SDL_Delay(1);
-
-			if ((enemies_destroyed >= 50)&&(!boss_spawned)){
+			
+			
+			if ((enemies_destroyed >= 50) && (!boss_spawned)) {
 				SpawnBoss(renderer);
 				boss_spawned = true;
 			}
+			RenderScore(renderer);
 
+			
+			
+			SDL_RenderPresent(renderer);
+			SDL_Delay(1);
 		}
 		else {
 
@@ -580,7 +660,7 @@ void Spawn(SDL_Renderer* renderer)
 		player_input.pressing_S = false;
 		player_input.pressing_W = false;
 		spawning = false;
-		player_alive = true;
+
 		being_immortal = true;
 		time_immortal = SDL_GetTicks();
 	}
@@ -617,8 +697,9 @@ void Spawn(SDL_Renderer* renderer)
 		lives = 3;
 	}
 	else {
-		SDL_RenderCopy(renderer, red_Square, NULL, &square);
+		//SDL_RenderCopy(renderer, red_Square, NULL, &square);
 		square.x += square_speed;
+		player_alive = true;
 	}
 }
 
@@ -653,7 +734,7 @@ void CheckCollisionBulletEnemy()
 						delete active_enemies[j];
 						active_enemies[j] = nullptr;
 						enemies_destroyed++;
-						score++;
+						score += 10;
 						break;
 					}
 				}
@@ -728,7 +809,7 @@ bool Explosion::Update(SDL_Renderer * renderer)
 }
 
 void SpawnBoss(SDL_Renderer* renderer) {
-	if (boss->boss_rect.x>550)
+	/*if (boss->boss_rect.x>550)
 	{
 		boss = new Boss();
 		boss->boss_rect.x -= square_speed;
@@ -738,5 +819,29 @@ void SpawnBoss(SDL_Renderer* renderer) {
 		active_minion[i] = new minions();
 	}
 	minionsNeeded = false;
+	*/
+}
+
+void RenderScore(SDL_Renderer * renderer)
+{
+	if (score != old_score) {
+		SDL_FreeSurface(score_to_print);
+		std::string Score = "Score: " + IntToString(score);
+		score_to_print = TTF_RenderText_Solid(font, Score.c_str(), color);
+		old_score = score;
+		SDL_DestroyTexture(tex_score);
+		tex_score = SDL_CreateTextureFromSurface(renderer, score_to_print);
+	}
+	
+	SDL_Rect rect{ 940, 20,130,70 };;
+	SDL_RenderCopy(renderer, tex_score, NULL, &rect);
+	
+}
+
+std::string IntToString(int number)
+{
+	std::stringstream sstream;
+	sstream << number;
+	return sstream.str();
 }
 
