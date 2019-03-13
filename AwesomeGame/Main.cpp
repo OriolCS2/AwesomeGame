@@ -99,17 +99,10 @@ struct Enemy {
 };
 
 struct Boss {
-	SDL_Rect boss_rect;
-	int speed;
-	Boss() {
-		boss_rect.x = 3000;
-		boss_rect.y = 225;
-		boss_rect.w = 500;
-		boss_rect.h = 300;
-		speed = 1;
-	}
+	SDL_Rect boss_rect{3000,225,500,300};
+	int speed = 1;
 };
-
+Boss boss;
 struct minion {
 	SDL_Rect minions_rect;
 	int speed;
@@ -124,7 +117,7 @@ struct minion {
 };
 
 Enemy* active_enemies[MAX_ACTIVE_ENEMIES];
-Boss boss;
+
 minion* active_minion[MAX_SPAWNABLE_MINIONS];
 
 bool game_on = false;
@@ -142,7 +135,7 @@ void moveBoss(SDL_Renderer*);
 void RenderScore(SDL_Renderer* renderer);
 void signDecider(minion* minion);
 
-int lives = 3;
+int lives = 5;
 int score = 0;
 int old_score = -1;
 SDL_Surface* score_to_print = nullptr;
@@ -172,17 +165,6 @@ SDL_Texture* ex2 = nullptr;
 SDL_Texture* ex3 = nullptr;
 SDL_Texture* ex4 = nullptr;
 
-SDL_Texture* num0[4];
-SDL_Texture* num1 = nullptr;
-SDL_Texture* num2 = nullptr;
-SDL_Texture* num3 = nullptr;
-SDL_Texture* num4 = nullptr;
-SDL_Texture* num5 = nullptr;
-SDL_Texture* num6 = nullptr;
-SDL_Texture* num7 = nullptr;
-SDL_Texture* num8 = nullptr;
-SDL_Texture* num9 = nullptr;
-
 SDL_Texture* red_Square = nullptr;
 
 bool player_alive = true;
@@ -197,6 +179,9 @@ Mix_Chunk *player_explosion = nullptr;
 Mix_Chunk *enemy_explosion = nullptr;
 std::string IntToString(int number);
 SDL_Texture* tex_score = nullptr;
+SDL_Texture* heart[5];
+
+void PrintHearts(SDL_Renderer* renderer);
 
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -265,6 +250,14 @@ int main(int argc, char* argv[]) {
 	SDL_Rect back2_rect1{ 0, 0,WINDOW_WIDTH,WINDOW_HEIGHT };
 	SDL_Rect back2_rect2{ WINDOW_WIDTH, 0 ,WINDOW_WIDTH,WINDOW_HEIGHT };
 
+	SDL_Surface* h = IMG_Load("UI/heart.png");
+	heart[0] = SDL_CreateTextureFromSurface(renderer, h);
+	heart[1] = SDL_CreateTextureFromSurface(renderer, h);
+	heart[2] = SDL_CreateTextureFromSurface(renderer, h);
+	heart[3] = SDL_CreateTextureFromSurface(renderer, h);
+	heart[4] = SDL_CreateTextureFromSurface(renderer, h);
+	SDL_FreeSurface(h);
+
 	//laser player 1
 	SDL_Surface* l1 = IMG_Load("lasers/laser_player1.png");
 	laser_player1 = SDL_CreateTextureFromSurface(renderer, l1);
@@ -291,60 +284,6 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* exp4 = IMG_Load("explosion/ex4.png");
 	ex4 = SDL_CreateTextureFromSurface(renderer, exp4);
 	SDL_FreeSurface(exp4);
-
-	//numbers Number0 7x10.png
-
-	SDL_Surface* NUM0 = IMG_Load("UI/Number0 7x10.png");
-	num0[0] = SDL_CreateTextureFromSurface(renderer, NUM0);
-	SDL_FreeSurface(NUM0);
-
-	SDL_Surface* NUM00 = IMG_Load("UI/Number0 7x10.png");
-	num0[1] = SDL_CreateTextureFromSurface(renderer, NUM00);
-	SDL_FreeSurface(NUM00);
-
-	SDL_Surface* NUM000 = IMG_Load("UI/Number0 7x10.png");
-	num0[2] = SDL_CreateTextureFromSurface(renderer, NUM000);
-	SDL_FreeSurface(NUM000);
-
-	SDL_Surface* NUM0000 = IMG_Load("UI/Number0 7x10.png");
-	num0[3] = SDL_CreateTextureFromSurface(renderer, NUM0000);
-	SDL_FreeSurface(NUM0000);
-
-	SDL_Surface* NUM1 = IMG_Load("UI/Number1 7x10.png");
-	num1 = SDL_CreateTextureFromSurface(renderer, NUM1);
-	SDL_FreeSurface(NUM1);
-
-	SDL_Surface* NUM2 = IMG_Load("UI/Number2 7x10.png");
-	num2 = SDL_CreateTextureFromSurface(renderer, NUM2);
-	SDL_FreeSurface(NUM2);
-
-	SDL_Surface* NUM3 = IMG_Load("UI/Number3 7x10.png");
-	num3 = SDL_CreateTextureFromSurface(renderer, NUM3);
-	SDL_FreeSurface(NUM3);
-
-	SDL_Surface* NUM4 = IMG_Load("UI/Number4 7x10.png");
-	num4 = SDL_CreateTextureFromSurface(renderer, NUM4);
-	SDL_FreeSurface(NUM4);
-
-	SDL_Surface* NUM5 = IMG_Load("UI/Number5 7x10.png");
-	num5 = SDL_CreateTextureFromSurface(renderer, NUM5);
-	SDL_FreeSurface(NUM5);
-
-	SDL_Surface* NUM6 = IMG_Load("UI/Number6 7x10.png");
-	num6 = SDL_CreateTextureFromSurface(renderer, NUM6);
-	SDL_FreeSurface(NUM6);
-
-	SDL_Surface* NUM7 = IMG_Load("UI/Number7 7x10.png");
-	num7 = SDL_CreateTextureFromSurface(renderer, NUM7);
-	SDL_FreeSurface(NUM7);
-
-	SDL_Surface* NUM8 = IMG_Load("UI/Number8 7x10.png");
-	num8 = SDL_CreateTextureFromSurface(renderer, NUM8);
-	SDL_FreeSurface(NUM8);
-
-	SDL_Surface* NUM9 = IMG_Load("UI/Number9 7x10.png");
-	num9 = SDL_CreateTextureFromSurface(renderer, NUM9);
-	SDL_FreeSurface(NUM9);
 
 	int cont = 2;
 	while (loop) {
@@ -381,11 +320,6 @@ int main(int argc, char* argv[]) {
 				back2_rect2.x = WINDOW_WIDTH;
 			}
 			++cont;
-			
-			if (lives==0)
-			{
-				score = 0;
-			}
 
 			BlitAnims(renderer);
 			if (!spawning) {
@@ -422,7 +356,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			RenderScore(renderer);			
-			
+			PrintHearts(renderer);
 			SDL_RenderPresent(renderer);
 			SDL_Delay(1);
 		}
@@ -685,6 +619,7 @@ void Spawn(SDL_Renderer* renderer)
 	else if (lives == 0) {
 		game_on = false;
 		enemies_destroyed = 0;
+		score = 0;
 		boss_spawned = false;
 		boss_lives = 30;
 		minionsNeeded = true;
@@ -712,7 +647,7 @@ void Spawn(SDL_Renderer* renderer)
 				active_explosions[i] = nullptr;
 			}
 		}
-		lives = 3;
+		lives = 5;
 	}
 	else {
 		//SDL_RenderCopy(renderer, red_Square, NULL, &square);
@@ -830,7 +765,7 @@ void SpawnBoss(SDL_Renderer* renderer) {
 	
 	boss.boss_rect.x = 1200;
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
 	{
 		active_minion[i] = new minion(); //creates a minion
 		active_minion[i]->minions_rect.x = boss.boss_rect.x;
@@ -856,7 +791,11 @@ void moveBoss(SDL_Renderer* renderer) {
 }
 
 void moveMinions() {
+<<<<<<< HEAD
 	int sign=0;
+=======
+	int sign = 1;
+>>>>>>> 76c03e963c9f6e72757e531f4d3f3d4af8a18aad
 	
 	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
 	{
@@ -886,8 +825,15 @@ void RenderScore(SDL_Renderer * renderer)
 		SDL_DestroyTexture(tex_score);
 		tex_score = SDL_CreateTextureFromSurface(renderer, score_to_print);
 	}
+	SDL_Rect rect_tex{ 460, 20,400,70 };;
+	std::string left = "POINTS LEFT TILL BOSS: " + IntToString(1000 - score);
+	SDL_Surface* surf = TTF_RenderText_Solid(font, left.c_str(), { 255,0,0 });
+	SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+	SDL_RenderCopy(renderer, tex, NULL, &rect_tex);
+	SDL_FreeSurface(surf);
+	SDL_DestroyTexture(tex);
 	
-	SDL_Rect rect{ 940, 20,130,70 };;
+	SDL_Rect rect{ 900, 20,170,70 };
 	SDL_RenderCopy(renderer, tex_score, NULL, &rect);
 	
 }
@@ -897,5 +843,45 @@ std::string IntToString(int number)
 	std::stringstream sstream;
 	sstream << number;
 	return sstream.str();
+}
+
+void PrintHearts(SDL_Renderer * renderer)
+{
+	SDL_Rect rect{ 20,20,70,70 };
+	if (lives == 5) {
+		SDL_RenderCopy(renderer, heart[0], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[1], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[2], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[3], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[4], NULL, &rect);
+	}
+	if (lives == 4) {
+		SDL_RenderCopy(renderer, heart[0], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[1], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[2], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[3], NULL, &rect);
+	}
+	if (lives == 3) {
+		SDL_RenderCopy(renderer, heart[0], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[1], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[2], NULL, &rect);
+	}
+	if (lives == 2) {
+		SDL_RenderCopy(renderer, heart[0], NULL, &rect);
+		rect.x += 80;
+		SDL_RenderCopy(renderer, heart[1], NULL, &rect);
+	}
+	if (lives == 1) {
+		SDL_RenderCopy(renderer, heart[0], NULL, &rect);
+	}
 }
 
