@@ -183,12 +183,15 @@ SDL_Texture* heart[5];
 
 void PrintHearts(SDL_Renderer* renderer);
 
+Mix_Music * song = nullptr;
+
 int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	Mix_Init(SDL_INIT_AUDIO);
 	IMG_Init(IMG_INIT_PNG);
 	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT, 2, 1000);
 	TTF_Init();
+	song = Mix_LoadMUS("music/SONG.ogg");
 	font = TTF_OpenFont("UI/Sunday-Afternoon.ttf", 20);
 	player_laser = Mix_LoadWAV("fx/player_laser.wav");
 	enemy_laser = Mix_LoadWAV("fx/aaaaaaaaaaa.wav");
@@ -286,6 +289,7 @@ int main(int argc, char* argv[]) {
 	SDL_FreeSurface(exp4);
 
 	int cont = 2;
+	Mix_PlayMusic(song, -1);
 	while (loop) {
 
 		if (game_on) {
