@@ -795,11 +795,9 @@ void moveBoss(SDL_Renderer* renderer) {
 }
 
 void moveMinions() {
-<<<<<<< HEAD
+
 	int sign=0;
-=======
-	int sign = 1;
->>>>>>> 76c03e963c9f6e72757e531f4d3f3d4af8a18aad
+
 	
 	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
 	{
