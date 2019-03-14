@@ -121,8 +121,9 @@ struct minion {
 		minions_rect.y = 2000;
 		minions_rect.w = 90;
 		minions_rect.h = 50;
-		speed = 2;
+		speed = 1;
 	}
+	void CreateEnemyBullet();
 };
 
 Enemy* active_enemies[MAX_ACTIVE_ENEMIES];
@@ -141,8 +142,8 @@ void Spawn(SDL_Renderer* renderer);
 void BlitAnims(SDL_Renderer* renderer);
 void SpawnBoss(SDL_Renderer* renderer);
 void moveBoss(SDL_Renderer*);
+void moveMinions();
 void RenderScore(SDL_Renderer* renderer);
-void signDecider(minion* minion);
 void DeleteEnemies();
 
 int lives = 5;
@@ -361,7 +362,7 @@ int main(int argc, char* argv[]) {
 			if (boss_spawned)
 			{
 				moveBoss(renderer);
-
+				moveMinions();
 			}
 			else {
 				MoveEnemies(renderer);
@@ -375,7 +376,6 @@ int main(int argc, char* argv[]) {
 				SDL_RenderCopy(renderer, red_Square, NULL, &square);
 			
 			
-			//if ((enemies_destroyed >= 50) && (!boss_spawned)) 
 			if((score>10)&&(!boss_spawned))
 			{
 				SpawnBoss(renderer);
@@ -803,6 +803,8 @@ void SpawnBoss(SDL_Renderer* renderer) {
 			active_minion[i]->minions_rect.y = boss.boss_rect.y;
 			if (active_minion[i]->sign == 0)
 			{
+				active_minion[i]->minions_rect.x = boss.boss_rect.x;
+				active_minion[i]->minions_rect.y = WINDOW_HEIGHT/5*(i+1);
 				active_minion[i]->sign = 1; //decides its sign
 			}
 			else
@@ -913,15 +915,13 @@ void moveBoss(SDL_Renderer* renderer) {
 }
 
 void moveMinions() {
-
-	int sign=0;
-
 	
 	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
 	{
-		if (active_minion[i]->minions_rect.x > 650)
+		/*if (active_minion[i]->minions_rect.x > 650)
 		{
 			active_minion[i]->minions_rect.x -= square_speed;
+
 		}
 		if (active_minion[i]->minions_rect.y>0)
 		{
@@ -931,6 +931,37 @@ void moveMinions() {
 		else if ((active_minion[i]->minions_rect.y == 0)||(active_minion[i]->minions_rect.y==700))
 		{
 			active_minion[i]->sign = active_minion[i]->sign*-1;
+		}
+		SDL_RenderCopy(renderer, minion_tex, NULL, &active_minion[i]->minions_rect);
+		*/
+		if (active_minion[i]->minions_rect.x<900) {
+			active_minion[i]->minions_rect.x += active_minion[i]->speed;
+		}
+		if (active_minion[i]->minions_rect.x > 900)
+		{
+			active_minion[i]->minions_rect.x -= active_minion[i]->speed;
+		}
+		if (active_minion[i]->minions_rect.y<1100)
+		{
+			active_minion[i]->minions_rect.y += active_minion[i]->speed*active_minion[i]->sign;
+		}
+		if (active_minion[i]->minions_rect.y == WINDOW_HEIGHT-active_minion[i]->minions_rect.h) {
+			active_minion[i]->sign = -1;
+		}
+		if (active_minion[i]->minions_rect.y==0)
+		{
+			active_minion[i]->sign = 1;
+		}
+	}
+}
+
+void minion::CreateEnemyBullet() {
+	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
+		if (active_enemy_bullets[i] == nullptr) {
+			active_enemy_bullets[i] = new EnemyBullet();
+			active_enemy_bullets[i]->bullet.x = minions_rect.x;
+			active_enemy_bullets[i]->bullet.y = minions_rect.y + square.h / 2 - active_enemy_bullets[i]->bullet.h / 2;
+			break;
 		}
 	}
 }
