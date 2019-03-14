@@ -126,13 +126,14 @@ struct minion {
 		minions_rect.h = 50;
 		speed = 1;
 	}
+	int time = 0;
 	void CreateEnemyBullet();
 };
 
 Enemy* active_enemies[MAX_ACTIVE_ENEMIES];
-
+bool win = false;
 minion* active_minion[MAX_SPAWNABLE_MINIONS];
-
+SDL_Texture* WIN = nullptr;
 bool game_on = false;
 
 void Input();
@@ -162,7 +163,7 @@ int enemies_destroyed = 0;
 bool minionsNeeded = true;
 SDL_Texture* minion_tex = nullptr;
 SDL_Event event;
-
+bool lose = false;
 SDL_Rect square{ -200, WINDOW_HEIGHT/2 - 35,120,70 };
 int square_speed = 1;
 
@@ -226,6 +227,14 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* e1 = IMG_Load("ships/enemy_1.png");
 	enemy_1 = SDL_CreateTextureFromSurface(renderer, e1);
 	SDL_FreeSurface(e1);
+
+	SDL_Surface* wi = IMG_Load("background/win.png");
+	WIN = SDL_CreateTextureFromSurface(renderer, wi);
+	SDL_FreeSurface(wi);
+
+	SDL_Surface* lo = IMG_Load("background/lose.png");
+	SDL_Texture* LOSE = SDL_CreateTextureFromSurface(renderer, lo);
+	SDL_FreeSurface(lo);
 	// enemy 2
 	SDL_Surface* e2 = IMG_Load("ships/enemy_2.png");
 	enemy_2 = SDL_CreateTextureFromSurface(renderer, e2);
@@ -373,6 +382,16 @@ int main(int argc, char* argv[]) {
 				CheckCollisionBulletMinion();
 				CheckCollisionBulletBoss();
 			}
+			else if (boss_lives == 0) {
+				enemies_destroyed = 0;
+				score = 0;
+				boss_spawned = false;
+				boss_lives = 30;
+				minionsNeeded = true;
+				game_on = false;
+				lives = 5;
+				win = true;
+			}
 			else {
 				MoveEnemies(renderer);
 			}
@@ -403,8 +422,11 @@ int main(int argc, char* argv[]) {
 		else {
 
 			if (SDL_PollEvent(&event) != 0) {
-				if (event.key.keysym.scancode == SDL_SCANCODE_RETURN)
+				if (event.key.keysym.scancode == SDL_SCANCODE_RETURN) {
 					game_on = true;
+					win = false;
+					lose = false;
+				}
 				if (event.type == SDL_QUIT) {
 					loop = false;
 				}
@@ -412,8 +434,12 @@ int main(int argc, char* argv[]) {
 					loop = false;
 				}
 			}
-
-			SDL_RenderCopy(renderer, background_texture, NULL, NULL);
+			if (win)
+				SDL_RenderCopy(renderer, WIN, NULL, NULL);
+			else if (lose)
+				SDL_RenderCopy(renderer, LOSE, NULL, NULL);
+			else
+				SDL_RenderCopy(renderer, background_texture, NULL, NULL);
 			SDL_RenderPresent(renderer);
 
 		}
@@ -641,21 +667,26 @@ void CheckPlayerCollision()
 				active_minion[i] = nullptr;
 			}
 		}
-		if (SDL_HasIntersection(&square, &boss.boss_rect))
-		{
-			player_alive = false;
-			--lives;
-			for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
-				if (active_explosions[z] == nullptr) {
-					active_explosions[z] = new Explosion(square);
-					break;
-				}
+	}
+	SDL_Rect rectt = boss.boss_rect;
+	rectt.w -= 100;
+	rectt.h -= 100;
+	rectt.x += 50;
+	rectt.y += 50;
+	if (SDL_HasIntersection(&square, &rectt))
+	{
+		player_alive = false;
+		--lives;
+		for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
+			if (active_explosions[z] == nullptr) {
+				active_explosions[z] = new Explosion(square);
+				break;
 			}
-			Mix_PlayChannel(-1, player_explosion, 0);
-			square.x = -300;
-			square.y = WINDOW_HEIGHT / 2 - square.h / 2;
-			spawning = true;
 		}
+		Mix_PlayChannel(-1, player_explosion, 0);
+		square.x = -300;
+		square.y = WINDOW_HEIGHT / 2 - square.h / 2;
+		spawning = true;
 	}
 	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
 		if (active_enemy_bullets[i] != nullptr) {
@@ -699,6 +730,7 @@ void Spawn(SDL_Renderer* renderer)
 		boss_spawned = false;
 		boss_lives = 30;
 		minionsNeeded = true;
+		lose = true;
 		for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
 			if (active_bullets[i] != nullptr) {
 				delete active_bullets[i];
@@ -802,20 +834,27 @@ void CheckCollisionBulletMinion()
 }
 
 void CheckCollisionBulletBoss() {
+	SDL_Rect rectt = boss.boss_rect;
+	rectt.w -= 100;
+	rectt.h -= 100;
+	rectt.x += 50;
+	rectt.y += 50;
 	for (int i = 0; i < MAX_ACTIVE_BULLETS; i++)
 	{
 		if (active_bullets[i] != nullptr)
 		{
-			if (SDL_HasIntersection(&active_bullets[i]->bullet, &boss.boss_rect))
+			if (SDL_HasIntersection(&active_bullets[i]->bullet, &rectt))
 			{
 				delete active_bullets[i];
 				active_bullets[i] = nullptr;
 				Mix_PlayChannel(-1, enemy_explosion, 0);
-				for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
-					if (active_explosions[z] == nullptr) {
-						active_explosions[z] = new Explosion(boss.boss_rect);
-						boss_lives--;
-						break;
+				boss_lives--;
+				if (boss_lives == 0) {
+					for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
+						if (active_explosions[z] == nullptr) {
+							active_explosions[z] = new Explosion(boss.boss_rect);
+							break;
+						}
 					}
 				}
 			}
@@ -896,16 +935,19 @@ void SpawnBoss(SDL_Renderer* renderer) {
 	{
 		if (active_minion[i] == nullptr) {
 			active_minion[i] = new minion(); //creates a minion
+			active_minion[i]->time = SDL_GetTicks();
 			active_minion[i]->minions_rect.x = boss.boss_rect.x;
 			active_minion[i]->minions_rect.y = boss.boss_rect.y;
 			if (active_minion[i]->sign == 0)
 			{
 				active_minion[i]->minions_rect.x = boss.boss_rect.x;
-				active_minion[i]->minions_rect.y = (rand() %WINDOW_HEIGHT)-70;
+				active_minion[i]->minions_rect.y = (rand() % WINDOW_HEIGHT - 70);
 				active_minion[i]->sign = 1; //decides its sign
 			}
 			else
 			{
+				active_minion[i]->minions_rect.x = boss.boss_rect.x;
+				active_minion[i]->minions_rect.y = (rand() % WINDOW_HEIGHT - 70);
 				active_minion[i]->sign = -1;
 			}
 		}
@@ -1015,22 +1057,6 @@ void moveMinions() {
 	
 	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
 	{
-		/*if (active_minion[i]->minions_rect.x > 650)
-		{
-			active_minion[i]->minions_rect.x -= square_speed;
-
-		}
-		if (active_minion[i]->minions_rect.y>0)
-		{
-			sign = active_minion[i]->sign;
-			active_minion[i]->minions_rect.y = square_speed*sign; //depending on the sign it will go up or down
-		}
-		else if ((active_minion[i]->minions_rect.y == 0)||(active_minion[i]->minions_rect.y==700))
-		{
-			active_minion[i]->sign = active_minion[i]->sign*-1;
-		}
-		SDL_RenderCopy(renderer, minion_tex, NULL, &active_minion[i]->minions_rect);
-		*/
 		if (active_minion[i] != nullptr)
 		{
 			if (active_minion[i]->minions_rect.x < 900) {
@@ -1050,6 +1076,12 @@ void moveMinions() {
 			if (active_minion[i]->minions_rect.y == 0)
 			{
 				active_minion[i]->sign = 1;
+			}
+			if (active_minion[i]->time <= SDL_GetTicks() - 1500) {
+				Mix_PlayChannel(-1, enemy_laser, 0);
+				active_minion[i]->CreateEnemyBullet();
+				active_minion[i]->time = SDL_GetTicks();
+
 			}
 		}
 	}
