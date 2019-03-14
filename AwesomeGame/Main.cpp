@@ -111,7 +111,9 @@ struct Boss {
 	bool wait = false;
 	int cont = 2;
 };
+
 Boss boss;
+
 struct minion {
 	SDL_Rect minions_rect;
 	int speed;
@@ -146,6 +148,7 @@ void moveMinions();
 void RenderScore(SDL_Renderer* renderer);
 void DeleteEnemies();
 void CheckCollisionBulletMinion();
+void CheckCollisionBulletBoss();
 
 int lives = 5;
 int score = 0;
@@ -306,6 +309,8 @@ int main(int argc, char* argv[]) {
 	ex4 = SDL_CreateTextureFromSurface(renderer, exp4);
 	SDL_FreeSurface(exp4);
 
+
+
 	int cont = 2;
 	
 	Mix_PlayMusic(song, -1);
@@ -360,11 +365,12 @@ int main(int argc, char* argv[]) {
 			if (being_immortal && SDL_GetTicks() - 1000 >= time_immortal) {
 				being_immortal = false;
 			}
-			if (boss_spawned)
+			if ((boss_spawned)&&(boss_lives>0))
 			{
 				moveBoss(renderer);
 				moveMinions();
 				CheckCollisionBulletMinion();
+				CheckCollisionBulletBoss();
 			}
 			else {
 				MoveEnemies(renderer);
@@ -602,6 +608,7 @@ void CheckPlayerCollision()
 						break;
 					}
 				}
+				
 				Mix_PlayChannel(-1, player_explosion, 0);
 				square.x = -300;
 				square.y = WINDOW_HEIGHT / 2 - square.h / 2;
@@ -611,6 +618,41 @@ void CheckPlayerCollision()
 				active_enemies[i] = nullptr;
 				enemies_destroyed++;
 			}
+		}
+		if (active_minion[i] != nullptr) {
+			if (SDL_HasIntersection(&square, &active_minion[i]->minions_rect)) {
+				player_alive = false;
+				--lives;
+				for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
+					if (active_explosions[z] == nullptr) {
+						active_explosions[z] = new Explosion(square);
+						break;
+					}
+				}
+
+				Mix_PlayChannel(-1, player_explosion, 0);
+				square.x = -300;
+				square.y = WINDOW_HEIGHT / 2 - square.h / 2;
+				spawning = true;
+				Mix_PlayChannel(-1, enemy_explosion, 0);
+				delete active_minion[i];
+				active_minion[i] = nullptr;
+			}
+		}
+		if (SDL_HasIntersection(&square, &boss.boss_rect))
+		{
+			player_alive = false;
+			--lives;
+			for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
+				if (active_explosions[z] == nullptr) {
+					active_explosions[z] = new Explosion(square);
+					break;
+				}
+			}
+			Mix_PlayChannel(-1, player_explosion, 0);
+			square.x = -300;
+			square.y = WINDOW_HEIGHT / 2 - square.h / 2;
+			spawning = true;
 		}
 	}
 	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
@@ -757,6 +799,29 @@ void CheckCollisionBulletMinion()
 
 }
 
+void CheckCollisionBulletBoss() {
+	for (int i = 0; i < MAX_ACTIVE_BULLETS; i++)
+	{
+		if (active_bullets[i] != nullptr)
+		{
+			if (SDL_HasIntersection(&active_bullets[i]->bullet, &boss.boss_rect))
+			{
+				delete active_bullets[i];
+				active_bullets[i] = nullptr;
+				Mix_PlayChannel(-1, enemy_explosion, 0);
+				for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
+					if (active_explosions[z] == nullptr) {
+						active_explosions[z] = new Explosion(boss.boss_rect);
+						boss_lives--;
+						break;
+					}
+				}
+			}
+		}
+		
+	}
+}
+
 bool Enemy::Update()
 {
 	bool ret = true;
@@ -834,7 +899,7 @@ void SpawnBoss(SDL_Renderer* renderer) {
 			if (active_minion[i]->sign == 0)
 			{
 				active_minion[i]->minions_rect.x = boss.boss_rect.x;
-				active_minion[i]->minions_rect.y = WINDOW_HEIGHT/5*(i+1);
+				active_minion[i]->minions_rect.y = (rand() %WINDOW_HEIGHT)-70;
 				active_minion[i]->sign = 1; //decides its sign
 			}
 			else
