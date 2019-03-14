@@ -106,8 +106,8 @@ struct Boss {
 	bool attack_down = false;
 	bool return_up = false;
 	bool return_down = false;
-	bool return = false;
-	bool return = false;
+	bool return_ = false;
+	bool attack = false;
 	int cont = 2;
 };
 Boss boss;
@@ -821,14 +821,16 @@ void moveBoss(SDL_Renderer* renderer) {
 		boss.boss_rect.x -= boss.speed;
 		boss.time = SDL_GetTicks();
 	}
-	if (boss.time <= SDL_GetTicks() - 2000 && !boss.attack_up && !boss.attack_down) {
-		if (square.y <= WINDOW_HEIGHT / 2)
+	if (boss.time <= SDL_GetTicks() - 1500 && !boss.attack_up && !boss.attack_down && !boss.attack) {
+		if (square.y <= 220)
 			boss.attack_up = true;
-		else
+		else if (square.y > 220 && square.y < 440)
+			boss.attack = true;
+		else 
 			boss.attack_down = true;
 	}
 	if (boss.attack_up && !boss.return_up) {
-		if (boss.boss_rect.x >= 10) {
+		if (boss.boss_rect.x >= 0) {
 			boss.boss_rect.x -= 2;
 			if (boss.cont % 2 == 0)
 				boss.boss_rect.y -= boss.speed;
@@ -851,8 +853,26 @@ void moveBoss(SDL_Renderer* renderer) {
 		}
 		++boss.cont;
 	}
+	if (boss.attack && !boss.return_) {
+		if (boss.boss_rect.x >= 0) {
+			boss.boss_rect.x -= 2;
+		}
+		else {
+			boss.return_ = true;
+		}
+	}
+	if (boss.return_ && boss.attack) {
+		if (boss.boss_rect.x <= 650) {
+			boss.boss_rect.x += 2;
+		}
+		else {
+			boss.attack = false;
+			boss.return_ = false;
+			boss.time = SDL_GetTicks();
+		}
+	}
 	if (boss.attack_down && !boss.return_down) {
-		if (boss.boss_rect.x >= 10) {
+		if (boss.boss_rect.x >= 0) {
 			boss.boss_rect.x -= 2;
 			if (boss.cont % 2 == 0)
 				boss.boss_rect.y += boss.speed;
