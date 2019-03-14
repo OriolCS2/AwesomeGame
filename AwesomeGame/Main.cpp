@@ -99,8 +99,16 @@ struct Enemy {
 };
 
 struct Boss {
-	SDL_Rect boss_rect{3000,225,500,300};
+	SDL_Rect boss_rect{3000,WINDOW_HEIGHT/2 - 150,500,300};
 	int speed = 1;
+	int time = 0;
+	bool attack_up = false;
+	bool attack_down = false;
+	bool return_up = false;
+	bool return_down = false;
+	bool return = false;
+	bool return = false;
+	int cont = 2;
 };
 Boss boss;
 struct minion {
@@ -806,9 +814,66 @@ void SpawnBoss(SDL_Renderer* renderer) {
 }
 
 void moveBoss(SDL_Renderer* renderer) {
+	
+	
 	if (boss.boss_rect.x>650)
 	{
 		boss.boss_rect.x -= boss.speed;
+		boss.time = SDL_GetTicks();
+	}
+	if (boss.time <= SDL_GetTicks() - 2000 && !boss.attack_up && !boss.attack_down) {
+		if (square.y <= WINDOW_HEIGHT / 2)
+			boss.attack_up = true;
+		else
+			boss.attack_down = true;
+	}
+	if (boss.attack_up && !boss.return_up) {
+		if (boss.boss_rect.x >= 10) {
+			boss.boss_rect.x -= 2;
+			if (boss.cont % 2 == 0)
+				boss.boss_rect.y -= boss.speed;
+		}
+		else {
+			boss.return_up = true;
+		}
+		++boss.cont;
+	}
+	if (boss.return_up && boss.attack_up) {
+		if (boss.boss_rect.x <= 650) {
+			boss.boss_rect.x += 2;
+			if (boss.cont % 2 == 0)
+			 boss.boss_rect.y += boss.speed;
+		}
+		else {
+			boss.attack_up = false;
+			boss.return_up = false;
+			boss.time = SDL_GetTicks();
+		}
+		++boss.cont;
+	}
+	if (boss.attack_down && !boss.return_down) {
+		if (boss.boss_rect.x >= 10) {
+			boss.boss_rect.x -= 2;
+			if (boss.cont % 2 == 0)
+				boss.boss_rect.y += boss.speed;
+		}
+		else {
+			boss.return_down = true;
+		}
+		++boss.cont;
+	}
+	if (boss.return_down && boss.attack_down) {
+		if (boss.boss_rect.x <= 650) {
+			boss.boss_rect.x += 2;
+			if (boss.cont % 2 == 0)
+				boss.boss_rect.y -= boss.speed;
+		}
+		else {
+			boss.attack_down = false;
+			boss.return_down = false;
+			boss.time = SDL_GetTicks();
+		}
+		++boss.cont;
 	}
 	SDL_RenderCopy(renderer, boss_text, NULL, &boss.boss_rect);
 	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; ++i) {
