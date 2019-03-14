@@ -17,10 +17,10 @@
 
 #define WINDOW_WIDTH 1100
 #define WINDOW_HEIGHT 700
-#define MAX_ACTIVE_BULLETS 10
+#define MAX_ACTIVE_BULLETS 8
 #define MAX_ENEMY_BULLETS 5
 #define MAX_ACTIVE_ENEMIES 5
-#define MAX_EXPLOSIONS 25
+#define MAX_EXPLOSIONS 7
 #define MAX_SPAWNABLE_MINIONS 5
 
 struct PlayerInput {
@@ -134,6 +134,7 @@ void SpawnBoss(SDL_Renderer* renderer);
 void moveBoss(SDL_Renderer*);
 void RenderScore(SDL_Renderer* renderer);
 void signDecider(minion* minion);
+void DeleteEnemies();
 
 int lives = 5;
 int score = 0;
@@ -289,9 +290,14 @@ int main(int argc, char* argv[]) {
 	SDL_FreeSurface(exp4);
 
 	int cont = 2;
+	
 	Mix_PlayMusic(song, -1);
-	while (loop) {
 
+	while (loop) {
+		Mix_Volume(-1, 50);
+		Mix_VolumeChunk(enemy_explosion, 100);
+		Mix_VolumeChunk(enemy_laser, 50);
+		Mix_VolumeMusic(100);
 		if (game_on) {
 			SDL_RenderCopy(renderer, back2, NULL, &back2_rect1);
 			SDL_RenderCopy(renderer, back2_1, NULL, &back2_rect2);
@@ -337,9 +343,17 @@ int main(int argc, char* argv[]) {
 			if (being_immortal && SDL_GetTicks() - 1000 >= time_immortal) {
 				being_immortal = false;
 			}
+			if (boss_spawned)
+			{
+				moveBoss(renderer);
+
+			}
+			else {
+				MoveEnemies(renderer);
+			}
 			CheckCollisionBulletEnemy();
 			MoveBullets(renderer);
-			MoveEnemies(renderer);
+			
 
 
 			if (player_alive)
@@ -347,17 +361,14 @@ int main(int argc, char* argv[]) {
 			
 			
 			//if ((enemies_destroyed >= 50) && (!boss_spawned)) 
-			if((score>10)&&(boss_spawned==false))
+			if((score>10)&&(!boss_spawned))
 			{
 				SpawnBoss(renderer);
 				boss_spawned = true;
+				DeleteEnemies();
 			}
 
-			if (boss_spawned==true)
-			{
-				moveBoss(renderer);
-
-			}
+			
 
 			RenderScore(renderer);			
 			PrintHearts(renderer);
@@ -787,7 +798,7 @@ void SpawnBoss(SDL_Renderer* renderer) {
 }
 
 void moveBoss(SDL_Renderer* renderer) {
-	if (boss.boss_rect.x>600)
+	if (boss.boss_rect.x>650)
 	{
 		boss.boss_rect.x -= boss.speed;
 	}
@@ -801,7 +812,7 @@ void moveMinions() {
 	
 	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
 	{
-		if (active_minion[i]->minions_rect.x > 600)
+		if (active_minion[i]->minions_rect.x > 650)
 		{
 			active_minion[i]->minions_rect.x -= square_speed;
 		}
@@ -838,6 +849,22 @@ void RenderScore(SDL_Renderer * renderer)
 	SDL_Rect rect{ 900, 20,170,70 };
 	SDL_RenderCopy(renderer, tex_score, NULL, &rect);
 	
+}
+
+void DeleteEnemies()
+{
+	for (int i = 0; i < MAX_ENEMY_BULLETS; ++i) {
+		if (active_enemy_bullets[i] != nullptr) {
+			delete active_enemy_bullets[i];
+			active_enemy_bullets[i] = nullptr;
+		}
+	}
+	for (int i = 0; i < MAX_ACTIVE_ENEMIES; ++i) {
+		if (active_enemies[i] != nullptr) {
+			delete active_enemies[i];
+			active_enemies[i] = nullptr;
+		}
+	}
 }
 
 std::string IntToString(int number)
