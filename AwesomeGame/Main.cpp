@@ -108,6 +108,7 @@ struct Boss {
 	bool return_down = false;
 	bool return_ = false;
 	bool attack = false;
+	bool wait = false;
 	int cont = 2;
 };
 Boss boss;
@@ -837,10 +838,12 @@ void moveBoss(SDL_Renderer* renderer) {
 		}
 		else {
 			boss.return_up = true;
+			boss.wait = true; 
+			boss.time = SDL_GetTicks();
 		}
 		++boss.cont;
 	}
-	if (boss.return_up && boss.attack_up) {
+	if (boss.return_up && boss.attack_up && !boss.wait) {
 		if (boss.boss_rect.x <= 650) {
 			boss.boss_rect.x += 2;
 			if (boss.cont % 2 == 0)
@@ -859,9 +862,11 @@ void moveBoss(SDL_Renderer* renderer) {
 		}
 		else {
 			boss.return_ = true;
+			boss.wait = true;
+			boss.time = SDL_GetTicks();
 		}
 	}
-	if (boss.return_ && boss.attack) {
+	if (boss.return_ && boss.attack && !boss.wait) {
 		if (boss.boss_rect.x <= 650) {
 			boss.boss_rect.x += 2;
 		}
@@ -879,10 +884,12 @@ void moveBoss(SDL_Renderer* renderer) {
 		}
 		else {
 			boss.return_down = true;
+			boss.wait = true;
+			boss.time = SDL_GetTicks();
 		}
 		++boss.cont;
 	}
-	if (boss.return_down && boss.attack_down) {
+	if (boss.return_down && boss.attack_down && !boss.wait) {
 		if (boss.boss_rect.x <= 650) {
 			boss.boss_rect.x += 2;
 			if (boss.cont % 2 == 0)
@@ -894,6 +901,9 @@ void moveBoss(SDL_Renderer* renderer) {
 			boss.time = SDL_GetTicks();
 		}
 		++boss.cont;
+	}
+	if (boss.wait && boss.time <= SDL_GetTicks() - 500) {
+		boss.wait = false;
 	}
 	SDL_RenderCopy(renderer, boss_text, NULL, &boss.boss_rect);
 	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; ++i) {
