@@ -145,6 +145,7 @@ void moveBoss(SDL_Renderer*);
 void moveMinions();
 void RenderScore(SDL_Renderer* renderer);
 void DeleteEnemies();
+void CheckCollisionBulletMinion();
 
 int lives = 5;
 int score = 0;
@@ -363,6 +364,7 @@ int main(int argc, char* argv[]) {
 			{
 				moveBoss(renderer);
 				moveMinions();
+				CheckCollisionBulletMinion();
 			}
 			else {
 				MoveEnemies(renderer);
@@ -727,6 +729,34 @@ void CheckCollisionBulletEnemy()
 
 }
 
+void CheckCollisionBulletMinion()
+{
+	for (int i = 0; i < MAX_ACTIVE_BULLETS; ++i) {
+		if (active_bullets[i] != nullptr) {
+			for (int j = 0; j < MAX_SPAWNABLE_MINIONS; ++j) {
+				if (active_minion[j] != nullptr) {
+					if (SDL_HasIntersection(&active_bullets[i]->bullet, &active_minion[j]->minions_rect)) {
+						delete active_bullets[i];
+						active_bullets[i] = nullptr;
+						Mix_PlayChannel(-1, enemy_explosion, 0);
+						for (int z = 0; z < MAX_EXPLOSIONS; ++z) {
+							if (active_explosions[z] == nullptr) {
+								active_explosions[z] = new Explosion(active_minion[j]->minions_rect);
+								break;
+							}
+						}
+						delete active_minion[j];
+						active_minion[j] = nullptr;
+						score += 20;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+}
+
 bool Enemy::Update()
 {
 	bool ret = true;
@@ -934,23 +964,26 @@ void moveMinions() {
 		}
 		SDL_RenderCopy(renderer, minion_tex, NULL, &active_minion[i]->minions_rect);
 		*/
-		if (active_minion[i]->minions_rect.x<900) {
-			active_minion[i]->minions_rect.x += active_minion[i]->speed;
-		}
-		if (active_minion[i]->minions_rect.x > 900)
+		if (active_minion[i] != nullptr)
 		{
-			active_minion[i]->minions_rect.x -= active_minion[i]->speed;
-		}
-		if (active_minion[i]->minions_rect.y<1100)
-		{
-			active_minion[i]->minions_rect.y += active_minion[i]->speed*active_minion[i]->sign;
-		}
-		if (active_minion[i]->minions_rect.y == WINDOW_HEIGHT-active_minion[i]->minions_rect.h) {
-			active_minion[i]->sign = -1;
-		}
-		if (active_minion[i]->minions_rect.y==0)
-		{
-			active_minion[i]->sign = 1;
+			if (active_minion[i]->minions_rect.x < 900) {
+				active_minion[i]->minions_rect.x += active_minion[i]->speed;
+			}
+			if (active_minion[i]->minions_rect.x > 900)
+			{
+				active_minion[i]->minions_rect.x -= active_minion[i]->speed;
+			}
+			if (active_minion[i]->minions_rect.y < 1100)
+			{
+				active_minion[i]->minions_rect.y += active_minion[i]->speed*active_minion[i]->sign;
+			}
+			if (active_minion[i]->minions_rect.y == WINDOW_HEIGHT - active_minion[i]->minions_rect.h) {
+				active_minion[i]->sign = -1;
+			}
+			if (active_minion[i]->minions_rect.y == 0)
+			{
+				active_minion[i]->sign = 1;
+			}
 		}
 	}
 }
