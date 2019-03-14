@@ -56,6 +56,7 @@ struct EnemyBullet {
 	}
 
 };
+
 EnemyBullet* active_enemy_bullets[MAX_ENEMY_BULLETS];
 
 enum class EnemyMovementType {
@@ -353,7 +354,7 @@ int main(int argc, char* argv[]) {
 			}
 			++cont;
 
-			BlitAnims(renderer);
+
 			if (!spawning) {
 				if (!being_immortal)
 					CheckPlayerCollision();
@@ -375,6 +376,7 @@ int main(int argc, char* argv[]) {
 			else {
 				MoveEnemies(renderer);
 			}
+			BlitAnims(renderer);
 			CheckCollisionBulletEnemy();
 			MoveBullets(renderer);
 			
