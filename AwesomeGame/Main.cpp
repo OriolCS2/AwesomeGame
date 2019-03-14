@@ -110,7 +110,7 @@ struct minion {
 	minion() {
 		minions_rect.x = 2000;
 		minions_rect.y = 2000;
-		minions_rect.w = 50;
+		minions_rect.w = 90;
 		minions_rect.h = 50;
 		speed = 2;
 	}
@@ -145,7 +145,7 @@ TTF_Font* font = nullptr;
 int boss_lives = 30;
 int enemies_destroyed = 0;
 bool minionsNeeded = true;
-
+SDL_Texture* minion_tex = nullptr;
 SDL_Event event;
 
 SDL_Rect square{ -200, WINDOW_HEIGHT/2 - 35,120,70 };
@@ -271,6 +271,12 @@ int main(int argc, char* argv[]) {
 	SDL_Surface* le1 = IMG_Load("lasers/laser_enemy.png");
 	laser_enemy = SDL_CreateTextureFromSurface(renderer, le1);
 	SDL_FreeSurface(le1);
+
+	//minion
+	SDL_Surface* m = IMG_Load("ships/minion.png");
+	minion_tex = SDL_CreateTextureFromSurface(renderer, m);
+	SDL_FreeSurface(m);
+
 
 	//explosions
 	SDL_Surface* exp1 = IMG_Load("explosion/ex1.png");
@@ -782,16 +788,18 @@ void SpawnBoss(SDL_Renderer* renderer) {
 
 	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; i++)
 	{
-		active_minion[i] = new minion(); //creates a minion
-		active_minion[i]->minions_rect.x = boss.boss_rect.x;
-		active_minion[i]->minions_rect.y = boss.boss_rect.y;
-		if (active_minion[i]->sign== 0)
-		{
-			active_minion[i]->sign = 1; //decides its sign
-		}
-		else
-		{
-			active_minion[i]->sign = -1;
+		if (active_minion[i] == nullptr) {
+			active_minion[i] = new minion(); //creates a minion
+			active_minion[i]->minions_rect.x = boss.boss_rect.x;
+			active_minion[i]->minions_rect.y = boss.boss_rect.y;
+			if (active_minion[i]->sign == 0)
+			{
+				active_minion[i]->sign = 1; //decides its sign
+			}
+			else
+			{
+				active_minion[i]->sign = -1;
+			}
 		}
 	}
 	
@@ -803,6 +811,10 @@ void moveBoss(SDL_Renderer* renderer) {
 		boss.boss_rect.x -= boss.speed;
 	}
 	SDL_RenderCopy(renderer, boss_text, NULL, &boss.boss_rect);
+	for (int i = 0; i < MAX_SPAWNABLE_MINIONS; ++i) {
+		if (active_minion[i] != nullptr)
+			SDL_RenderCopy(renderer, minion_tex, NULL, &active_minion[i]->minions_rect);
+	}
 }
 
 void moveMinions() {
