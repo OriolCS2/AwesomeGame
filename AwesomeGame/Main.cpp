@@ -158,7 +158,7 @@ int old_score = -1;
 SDL_Surface* score_to_print = nullptr;
 SDL_Color color{ 255,0,0 };
 TTF_Font* font = nullptr;
-int boss_lives = 30;
+int boss_lives = 45;
 int enemies_destroyed = 0;
 bool minionsNeeded = true;
 SDL_Texture* minion_tex = nullptr;
@@ -391,6 +391,7 @@ int main(int argc, char* argv[]) {
 				game_on = false;
 				lives = 5;
 				win = true;
+				DeleteEnemies();
 			}
 			else {
 				MoveEnemies(renderer);
@@ -405,7 +406,7 @@ int main(int argc, char* argv[]) {
 				SDL_RenderCopy(renderer, red_Square, NULL, &square);
 			
 			
-			if((score>10)&&(!boss_spawned))
+			if((score>490)&&(!boss_spawned))
 			{
 				SpawnBoss(renderer);
 				boss_spawned = true;
@@ -1108,13 +1109,16 @@ void RenderScore(SDL_Renderer * renderer)
 		SDL_DestroyTexture(tex_score);
 		tex_score = SDL_CreateTextureFromSurface(renderer, score_to_print);
 	}
-	SDL_Rect rect_tex{ 460, 20,400,70 };;
-	std::string left = "POINTS LEFT TILL BOSS: " + IntToString(1000 - score);
-	SDL_Surface* surf = TTF_RenderText_Solid(font, left.c_str(), { 255,0,0 });
-	SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
-	SDL_RenderCopy(renderer, tex, NULL, &rect_tex);
-	SDL_FreeSurface(surf);
-	SDL_DestroyTexture(tex);
+	if (!boss_spawned) {
+		SDL_Rect rect_tex{ 460, 20,400,70 };;
+		std::string left = "POINTS LEFT TILL BOSS: " + IntToString(500 - score);
+		SDL_Surface* surf = TTF_RenderText_Solid(font, left.c_str(), { 255,0,0 });
+		SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+		SDL_RenderCopy(renderer, tex, NULL, &rect_tex);
+		SDL_FreeSurface(surf);
+		SDL_DestroyTexture(tex);
+	}
+	
 	
 	SDL_Rect rect{ 900, 20,170,70 };
 	SDL_RenderCopy(renderer, tex_score, NULL, &rect);
@@ -1133,6 +1137,12 @@ void DeleteEnemies()
 		if (active_enemies[i] != nullptr) {
 			delete active_enemies[i];
 			active_enemies[i] = nullptr;
+		}
+	}
+	for (int i = 0; i < MAX_EXPLOSIONS; ++i) {
+		if (active_explosions[i] != nullptr) {
+			delete active_explosions[i];
+			active_explosions[i] = nullptr;
 		}
 	}
 }
